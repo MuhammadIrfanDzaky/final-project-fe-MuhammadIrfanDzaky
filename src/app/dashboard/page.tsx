@@ -1,0 +1,267 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { mockApi } from '@/utils/mockApi';
+import { DashboardStats, Booking, Court, User } from '@/types';
+import PageLayout from '@/components/layout/PageLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useRouter } from 'next/navigation';
+
+const DashboardPage = () => {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [courts, setCourts] = useState<Court[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Redirect regular users to courts page
+    if (user?.role === 'regular_user') {
+      router.push('/courts');
+      return;
+    }
+
+    const fetchDashboardData = async () => {
+      try {
+        const [statsData, courtsData, usersData] = await Promise.all([
+          mockApi.dashboard.getStats(user?.id, user?.role),
+          mockApi.courts.getAll(),
+          user?.role === 'super_admin' ? mockApi.users.getAll() : Promise.resolve([]),
+        ]);
+        
+        setStats(statsData);
+        setCourts(courtsData);
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user, router]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const getRoleBasedTitle = () => {
+    switch (user?.role) {
+      case 'super_admin':
+        return 'System Overview';
+      case 'field_owner':
+        return 'Your Courts & Bookings';
+      default:
+        return 'Dashboard';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // "Render nothing — regular users are redirected."
+  if (user?.role === 'regular_user') {
+    return null;
+  }
+  
+  return (
+    <ProtectedRoute route="/dashboard">
+      {loading ? (
+        <PageLayout title="Dashboard">
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white rounded-lg shadow p-4">
+                  <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                  <div className="h-8 w-16 mb-2 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4" />
+                <div className="space-y-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center space-x-4">
+                      <div className="h-12 w-12 rounded bg-gray-200 animate-pulse" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                        <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                      <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </PageLayout>
+      ) : (
+        // loaded state code here
+        <PageLayout 
+          title={`${getGreeting()}, ${user?.name}!`}
+          subtitle={getRoleBasedTitle()}
+        >
+          <div className="space-y-6">
+            {/* Stat Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-500 font-medium">Total Bookings</span>
+                  <span className="text-gray-400">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                  </span>
+                </div>
+                <div className="text-2xl font-bold">{stats?.totalBookings ?? 0}</div>
+                <div className="text-xs text-green-600 mt-1">+12% from last month</div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-500 font-medium">Revenue</span>
+                  <span className="text-gray-400">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><text x="7" y="17" fontSize="12" fill="currentColor">$</text></svg>
+                  </span>
+                </div>
+                <div className="text-2xl font-bold">${stats?.totalRevenue ?? 0}</div>
+                <div className="text-xs text-green-600 mt-1">+8% from last month</div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-500 font-medium">Active Courts</span>
+                  <span className="text-gray-400">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 2v20M2 12h20" /></svg>
+                  </span>
+                </div>
+                <div className="text-2xl font-bold">{stats?.activeCourts ?? 0}</div>
+                <div className="text-xs text-gray-500 mt-1">All systems operational</div>
+              </div>
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-500 font-medium">Total Users</span>
+                  <span className="text-gray-400">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4" /><path d="M17 11v-1a4 4 0 0 0-4-4h-1" /><path d="M17 21v-2a4 4 0 0 0-4-4h-1" /><circle cx="17" cy="17" r="4" /></svg>
+                  </span>
+                </div>
+                <div className="text-2xl font-bold">{stats?.totalUsers ?? 0}</div>
+                <div className="text-xs text-green-600 mt-1">+5 new this week</div>
+              </div>
+            </div>
+
+            {/* Bookings Overview */}
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Recent Bookings */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold mb-1">Recent Bookings</h2>
+                  <div className="text-gray-500 text-sm">Latest booking activity (newly created bookings)</div>
+                </div>
+                <div className="space-y-3">
+                  {stats?.recentBookings && stats.recentBookings.length > 0 ? (
+                    stats.recentBookings.map((booking, i) => {
+                      const court = courts.find(c => c.id === booking.courtId);
+                      const bookingUser = users.find(u => u.id === booking.userId) || user;
+                      return (
+                        <div key={booking.id} className="flex items-center justify-between bg-green-50 rounded p-3">
+                          <div className="flex items-center gap-3">
+                            <span className="h-8 w-8 flex items-center justify-center bg-green-100 rounded">
+                              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                            </span>
+                            <div>
+                              <div className="font-semibold text-gray-900">{court?.name || booking.courtId}</div>
+                              <div className="text-xs text-gray-500">{bookingUser?.name || 'Regular User'} &bull; {booking.date} &bull; {booking.startTime}-{booking.endTime}</div>
+                            </div>
+                          </div>
+                          <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full lowercase">{booking.status}</span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-gray-400 text-center py-8">No recent bookings</div>
+                  )}
+                </div>
+                <div className="pt-4">
+                  <a href="/bookings" className="block w-full text-center text-sm font-medium text-gray-700 border-t pt-4 hover:underline">View All Bookings</a>
+                </div>
+              </div>
+
+              {/* Upcoming Bookings */}
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center">
+                <div className="mb-4 w-full">
+                  <h2 className="text-xl font-bold mb-1">Upcoming Bookings</h2>
+                  <div className="text-gray-500 text-sm">Confirmed bookings scheduled for future dates</div>
+                </div>
+                {stats?.upcomingBookings && stats.upcomingBookings.length > 0 ? (
+                  <div className="w-full space-y-3">
+                    {stats.upcomingBookings.map((booking) => {
+                      const court = courts.find(c => c.id === booking.courtId);
+                      const bookingUser = users.find(u => u.id === booking.userId) || user;
+                      return (
+                        <div key={booking.id} className="flex items-center justify-between bg-blue-50 rounded p-3">
+                          <div className="flex items-center gap-3">
+                            <span className="h-8 w-8 flex items-center justify-center bg-blue-100 rounded">
+                              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                            </span>
+                            <div>
+                              <div className="font-semibold text-gray-900">{court?.name || booking.courtId}</div>
+                              <div className="text-xs text-gray-500">{bookingUser?.name || 'Regular User'} &bull; {booking.date} &bull; {booking.startTime}-{booking.endTime}</div>
+                            </div>
+                          </div>
+                          <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full lowercase">{booking.status}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center flex-1 py-12">
+                    <span className="h-16 w-16 flex items-center justify-center text-gray-300 mb-4">
+                      <svg width="64" height="64" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                    </span>
+                    <div className="text-gray-400 mb-4">No upcoming bookings</div>
+                    <a href="/courts" className="inline-block px-8 py-3 rounded bg-green-400 text-white font-semibold hover:bg-green-500 transition">Browse Courts</a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </PageLayout>
+      )}
+    </ProtectedRoute>
+  );
+};
+
+export default DashboardPage;
