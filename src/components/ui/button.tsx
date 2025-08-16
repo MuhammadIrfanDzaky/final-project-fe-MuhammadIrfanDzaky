@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -23,22 +22,22 @@ const sizeClasses: Record<string, string> = {
   icon: 'h-10 w-10',
 };
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className = '', variant = 'default', size = 'default', asChild = false, ...props }, ref) => {
-    const classes = [
-      'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-      variantClasses[variant] || '',
-      sizeClasses[size] || '',
-      className
-    ].join(' ');
-    if (asChild) {
-      return <React.Fragment>{props.children}</React.Fragment>;
-    }
-    return (
-      <button className={classes} ref={ref} {...props} />
-    );
-  }
-);
-Button.displayName = 'Button';
+export default function Button(
+  { className = '', variant = 'default', size = 'default', asChild = false, ...props }: ButtonProps,
+  ref?: React.Ref<HTMLButtonElement>
+) {
+  const classes = [
+    'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+    variantClasses[variant] || '',
+    sizeClasses[size] || '',
+    className
+  ].join(' ');
 
-export { Button };
+  if (asChild) {
+    return <React.Fragment>{props.children}</React.Fragment>;
+  }
+
+  return (
+    <button className={classes} ref={ref} {...props} />
+  );
+}

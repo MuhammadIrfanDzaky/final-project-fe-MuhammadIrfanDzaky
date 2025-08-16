@@ -8,9 +8,6 @@ import { Court } from '@/types';
 import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
-// Removed all custom UI components and icons. Using native HTML and inline SVGs only.
-
-import Link from 'next/link';
 
 interface ClientCourtDetailsProps {
   courtId: string;

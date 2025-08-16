@@ -8,7 +8,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 
-const DashboardPage = () => {
+export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -263,5 +263,3 @@ const DashboardPage = () => {
     </ProtectedRoute>
   );
 };
-
-export default DashboardPage;

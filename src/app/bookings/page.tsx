@@ -8,7 +8,7 @@ import { mockApi } from "@/utils/mockApi";
 import { Booking, Court, User } from "@/types";
 import { hasPermission, canAccessBooking } from "@/utils/roleGuard";
 
-const BookingsPage = () => {
+export default function BookingsPage() {
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -415,5 +415,3 @@ const BookingsPage = () => {
     </PageLayout>
   );
 }
-
-export default BookingsPage;

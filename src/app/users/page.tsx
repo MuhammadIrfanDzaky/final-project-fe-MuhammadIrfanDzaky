@@ -8,7 +8,7 @@ import { hasPermission } from '@/utils/roleGuard';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
-const UsersPage = () => {
+export default function UsersPage() {
   const { user } = useAuth();
   const [users, setUsers] = useState<UserType[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserType[]>([]);
@@ -393,4 +393,3 @@ const UsersPage = () => {
     </ProtectedRoute>
   );
 };
-export default UsersPage;

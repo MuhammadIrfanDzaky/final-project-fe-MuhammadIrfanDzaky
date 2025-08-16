@@ -7,7 +7,7 @@ interface FutsalLogoProps {
     size?: number;
 }
 
-function FutsalLogo({ className = '', size = 32 }: FutsalLogoProps) {
+export default function FutsalLogo({ className = '', size = 32 }: FutsalLogoProps) {
     return (
         <div
             className={`bg-primary rounded-lg flex items-center justify-center ${className}`}
@@ -69,5 +69,3 @@ function FutsalLogo({ className = '', size = 32 }: FutsalLogoProps) {
         </div>
     );
 }
-
-export default FutsalLogo;

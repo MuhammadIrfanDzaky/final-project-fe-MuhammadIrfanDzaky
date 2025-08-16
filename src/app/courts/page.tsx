@@ -8,7 +8,7 @@ import { Court } from '@/types';
 import { hasPermission, canAccessCourt, canManageCourt } from '@/utils/roleGuard';
 import Link from 'next/link';
 
-const CourtsPage = () => {
+export default function CourtsPage() {
   const { user } = useAuth();
   const [courts, setCourts] = useState<Court[]>([]);
   const [filteredCourts, setFilteredCourts] = useState<Court[]>([]);
@@ -328,5 +328,3 @@ const CourtsPage = () => {
     </PageLayout>
   );
 }
-
-export default CourtsPage;

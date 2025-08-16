@@ -6,7 +6,7 @@ import { mockApi } from '@/utils/mockApi';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
-const ProfilePage = () => {
+export default function ProfilePage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -340,5 +340,3 @@ const ProfilePage = () => {
     </ProtectedRoute>
   );
 };
-
-export default ProfilePage;

@@ -12,7 +12,7 @@ import {
   RoleType,
   validateRegisterForm,
 } from '@/utils/validateRegisterForm';
-import { Button } from 'react-day-picker';
+import Button from '@/components/ui/button';
 
 export default function RegisterPage() {
   const [form, setForm] = useState<FormState>({
@@ -155,14 +155,14 @@ export default function RegisterPage() {
                   value={form.password}
                   onChange={handleChange}
                 />
-                <button
+                <Button
                   type="button"
                   className="absolute right-0 top-0 h-full px-3 text-gray-500"
                   onClick={() => setShowPassword(prev => !prev)}
                   tabIndex={-1}
                 >
                   <TogglePasswordIcon isVisible={showPassword} />
-                </button>
+                </Button>
               </div>
               {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
             </div>
@@ -180,14 +180,14 @@ export default function RegisterPage() {
                   value={form.confirmPassword}
                   onChange={handleChange}
                 />
-                <button
+                <Button
                   type="button"
                   className="absolute right-0 top-0 h-full px-3 text-gray-500"
                   onClick={() => setShowConfirmPassword(prev => !prev)}
                   tabIndex={-1}
                 >
                   <TogglePasswordIcon isVisible={showConfirmPassword} />
-                </button>
+                </Button>
               </div>
               {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
             </div>

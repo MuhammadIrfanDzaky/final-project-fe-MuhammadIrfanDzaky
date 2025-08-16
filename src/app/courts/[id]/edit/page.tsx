@@ -46,7 +46,7 @@ const predefinedFacilities = [
   'Lockers',
 ];
 
-const EditCourtPage = () => {
+export default function EditCourtPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
@@ -463,5 +463,3 @@ const EditCourtPage = () => {
     </ProtectedRoute>
   );
 };
-
-export default EditCourtPage;
