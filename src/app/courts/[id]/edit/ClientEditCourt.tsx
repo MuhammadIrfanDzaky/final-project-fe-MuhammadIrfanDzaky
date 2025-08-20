@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockApi } from '@/utils/mockApi';
 import { Court } from '@/types';
@@ -16,13 +17,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Badge from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-// ...existing code...
 import Link from 'next/link';
 
 type CourtForm = {
@@ -85,37 +85,48 @@ export default function ClientEditCourt({
         },
     });
 
+    // Add validation to facilities field
+    useEffect(() => {
+        register('facilities', {
+            validate: value => (value && value.length > 0) || 'At least one facility is required',
+        });
+    }, [register]);
+
     const watchedImage = watch('image');
 
     useEffect(() => {
+        if (!user) return; // Wait for user to be loaded
+        let isMounted = true;
         async function fetchCourt() {
-        try {
-            const data = await mockApi.courts.getById(courtId);
-            if (!data || !canManageCourt(user, data)) {
-            window.alert('You do not have permission to edit this court');
-            router.push('/courts');
-            return;
+            try {
+                const data = await mockApi.courts.getById(courtId);
+                if (!isMounted) return;
+                if (!data || !canManageCourt(user, data)) {
+                    toast.error('You do not have permission to edit this court');
+                    router.push('/courts');
+                    return;
+                }
+                setCourt(data);
+                setSelectedFacilities(data.facilities);
+                reset({
+                    name: data.name,
+                    description: data.description,
+                    location: data.location,
+                    pricePerHour: data.pricePerHour,
+                    image: data.image,
+                    facilities: data.facilities,
+                    isActive: data.isActive,
+                });
+            } catch (error) {
+                console.error('Error fetching court:', error);
+                toast.error('Failed to load court details');
+                router.push('/courts');
+            } finally {
+                if (isMounted) setLoading(false);
             }
-            setCourt(data);
-            setSelectedFacilities(data.facilities);
-            reset({
-            name: data.name,
-            description: data.description,
-            location: data.location,
-            pricePerHour: data.pricePerHour,
-            image: data.image,
-            facilities: data.facilities,
-            isActive: data.isActive,
-            });
-        } catch (error) {
-            console.error('Error fetching court:', error);
-            window.alert('Failed to load court details');
-            router.push('/courts');
-        } finally {
-            setLoading(false);
-        }
         }
         fetchCourt();
+        return () => { isMounted = false; };
     }, [courtId, user, router, reset]);
 
     const handleFacilityToggle = (facility: string) => {
@@ -146,41 +157,20 @@ export default function ClientEditCourt({
 
     const onSubmit = async (data: CourtForm) => {
         if (!court) return;
-        // Manual validation
-        if (!data.name || data.name.length < 2) {
-            window.alert('Court name must be at least 2 characters');
-            return;
-        }
-        if (!data.description || data.description.length < 10) {
-            window.alert('Description must be at least 10 characters');
-            return;
-        }
-        if (!data.location || data.location.length < 5) {
-            window.alert('Location must be at least 5 characters');
-            return;
-        }
-        if (!data.image) {
-            window.alert('Please enter a valid image URL');
-            return;
-        }
-        if (!data.facilities || data.facilities.length < 1) {
-            window.alert('At least one facility is required');
-            return;
-        }
         setSaving(true);
         try {
             await mockApi.courts.update(court.id, data);
-            window.alert('Court updated successfully!');
+            toast.success('Court updated successfully!');
             router.push(`/courts/${court.id}`);
         } catch (error) {
             console.error('Error updating court:', error);
-            window.alert('Failed to update court');
+            toast.error('Failed to update court');
         } finally {
             setSaving(false);
         }
     };
 
-    if (loading) {
+    if (loading || !user) {
         return (
         <ProtectedRoute route="/courts">
             <PageLayout title="Edit Court">
@@ -254,7 +244,13 @@ export default function ClientEditCourt({
                     <div className="grid gap-4 md:grid-cols-2">
                     <div>
                         <Label htmlFor="name">Court Name</Label>
-                        <Input id="name" {...register('name')} />
+                        <Input
+                            id="name"
+                            {...register('name', {
+                                required: 'Court name is required',
+                                minLength: { value: 2, message: 'Court name must be at least 2 characters' },
+                            })}
+                        />
                         {errors.name && (
                         <p className="text-sm text-destructive">
                             {errors.name.message}
@@ -270,7 +266,10 @@ export default function ClientEditCourt({
                             <Input
                                 id="location"
                                 className="pl-10"
-                                {...register('location')}
+                                {...register('location', {
+                                    required: 'Location is required',
+                                    minLength: { value: 5, message: 'Location must be at least 5 characters' },
+                                })}
                             />
                         </div>
                         {errors.location && (
@@ -281,7 +280,13 @@ export default function ClientEditCourt({
                     </div>
                     <div>
                         <Label htmlFor="description">Description</Label>
-                        <Textarea id="description" {...register('description')} />
+                        <Textarea
+                            id="description"
+                            {...register('description', {
+                                required: 'Description is required',
+                                minLength: { value: 10, message: 'Description must be at least 10 characters' },
+                            })}
+                        />
                         {errors.description && (
                             <p className="text-sm text-destructive">
                                 {errors.description.message}
@@ -302,6 +307,8 @@ export default function ClientEditCourt({
                                     className="pl-10"
                                     {...register('pricePerHour', {
                                         valueAsNumber: true,
+                                        required: 'Price per hour is required',
+                                        min: { value: 1, message: 'Price must be at least $1' },
                                     })}
                                 />
                             </div>
@@ -340,7 +347,17 @@ export default function ClientEditCourt({
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 flex items-center justify-center">
                                             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
                                         </span>
-                    <Input id="image" type="url" {...register('image')} />
+                    <Input
+                        id="image"
+                        type="url"
+                        {...register('image', {
+                            required: 'Image URL is required',
+                            pattern: {
+                                value: /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|svg))$/i,
+                                message: 'Please enter a valid image URL',
+                            },
+                        })}
+                    />
                     </div>
                     {errors.image && (
                     <p className="text-sm text-destructive">
@@ -443,9 +460,9 @@ export default function ClientEditCourt({
                     </>
                     ) : (
                     <>
-                                                <span className="h-4 w-4 mr-2 flex items-center justify-center">
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
-                                                </span>
+                        <span className="h-4 w-4 mr-2 flex items-center justify-center">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+                        </span>
                         Save Changes
                     </>
                     )}

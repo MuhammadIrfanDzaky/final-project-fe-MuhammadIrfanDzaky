@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockApi } from '@/utils/mockApi';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -96,39 +97,31 @@ export default function CreateCourtPage() {
     if (!user) return;
     // Basic validation
     if (!data.name || data.name.length < 2) {
-  window.alert('Court name must be at least 2 characters');
+      toast.error('Court name must be at least 2 characters');
       return;
     }
     if (!data.description || data.description.length < 10) {
-  window.alert('Description must be at least 10 characters');
+      toast.error('Description must be at least 10 characters');
       return;
     }
     if (!data.location || data.location.length < 5) {
-  window.alert('Location must be at least 5 characters');
+      toast.error('Location must be at least 5 characters');
       return;
     }
     if (!data.image) {
-  window.alert('Please enter a valid image URL');
-      return;
-    }
-    if (!data.facilities || data.facilities.length < 1) {
-  window.alert('At least one facility is required');
       return;
     }
     setLoading(true);
     try {
-      const courtData = {
+      await mockApi.courts.create({
         ...data,
-        ownerId: user.id,
+        ownerId: user.role === 'field_owner' ? user.id : (user.role === 'super_admin' ? user.id : ''),
         isActive: true,
-      };
-
-      await mockApi.courts.create(courtData);
-  window.alert('Court created successfully!');
+      });
+      toast.success('Court created successfully!');
       router.push('/courts');
-    } catch (error) {
-      console.error('Error creating court:', error);
-  window.alert('Failed to create court');
+    } catch (err) {
+      toast.error('Failed to create court. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -178,13 +171,17 @@ export default function CreateCourtPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name">Court Name</Label>
                     <Input
                       id="name"
                       placeholder="e.g., Premium Court A"
-                      {...register('name')}
+                      {...register('name', {
+                        required: 'Court name is required',
+                        minLength: { value: 2, message: 'Court name must be at least 2 characters' },
+                      })}
                     />
                     {errors.name && (
                       <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -193,17 +190,14 @@ export default function CreateCourtPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 flex items-center justify-center">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21c-4.97-6.16-8-9.5-8-13A8 8 0 0 1 20 8c0 3.5-3.03 6.84-8 13z" /><circle cx="12" cy="8" r="3" /></svg>
-                      </span>
-                      <Input
-                        id="location"
-                        placeholder="e.g., Downtown Sports Complex"
-                        className="pl-10"
-                        {...register('location')}
-                      />
-                    </div>
+                    <Input
+                      id="location"
+                      placeholder="e.g., Downtown Sports Complex"
+                      {...register('location', {
+                        required: 'Location is required',
+                        minLength: { value: 5, message: 'Location must be at least 5 characters' },
+                      })}
+                    />
                     {errors.location && (
                       <p className="text-sm text-destructive">{errors.location.message}</p>
                     )}
@@ -216,7 +210,10 @@ export default function CreateCourtPage() {
                     id="description"
                     placeholder="Describe your court, its features, and what makes it special..."
                     rows={4}
-                    {...register('description')}
+                    {...register('description', {
+                      required: 'Description is required',
+                      minLength: { value: 10, message: 'Description must be at least 10 characters' },
+                    })}
                   />
                   {errors.description && (
                     <p className="text-sm text-destructive">{errors.description.message}</p>
@@ -236,7 +233,11 @@ export default function CreateCourtPage() {
                       step="0.01"
                       placeholder="50.00"
                       className="pl-10"
-                      {...register('pricePerHour', { valueAsNumber: true })}
+                      {...register('pricePerHour', {
+                        valueAsNumber: true,
+                        required: 'Price per hour is required',
+                        min: { value: 1, message: 'Price must be at least $1' },
+                      })}
                     />
                   </div>
                   {errors.pricePerHour && (
@@ -266,7 +267,13 @@ export default function CreateCourtPage() {
                       type="url"
                       placeholder="https://example.com/court-image.jpg"
                       className="pl-10"
-                      {...register('image')}
+                      {...register('image', {
+                        required: 'Image URL is required',
+                        pattern: {
+                          value: /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|svg))$/i,
+                          message: 'Please enter a valid image URL',
+                        },
+                      })}
                     />
                   </div>
                   {errors.image && (

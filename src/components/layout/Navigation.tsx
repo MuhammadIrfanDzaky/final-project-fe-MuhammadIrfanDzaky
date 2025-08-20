@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { hasPermission } from '@/utils/roleGuard';
 import FutsalLogo from '@/components/ui/futsal-logo';
@@ -57,10 +57,16 @@ const Navigation = () => {
 
   const filteredNavItems = navigationItems.filter(item => {
     if (!user) return false;
-    if (item.roles && !item.roles.includes(user.role)) {
+    // Only show dashboard for super_admin and field_owner
+    if (item.name === 'Dashboard' && !['super_admin', 'field_owner'].includes(user.role)) return false;
+    // Only show users for super_admin
+    if (item.name === 'Users' && user.role !== 'super_admin') return false;
+    // Only show courts and bookings for all roles
+    if ((item.name === 'Courts' || item.name === 'Bookings') && !['super_admin', 'field_owner', 'regular_user'].includes(user.role)) return false;
+    if (item.permission && !hasPermission(user, item.permission)) {
       return false;
     }
-    return !item.permission || hasPermission(user, item.permission);
+    return true;
   });
 
   const handleLogout = () => {

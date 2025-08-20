@@ -23,7 +23,12 @@ export default function ProtectedRoute(props: ProtectedRouteProps) {
       }
 
       if (!canAccessRoute(user, route)) {
-        router.push('/dashboard');
+        // Custom redirect for courts/create
+        if (route === '/courts/create') {
+          router.push('/courts');
+        } else {
+          router.push('/dashboard');
+        }
         return;
       }
     }

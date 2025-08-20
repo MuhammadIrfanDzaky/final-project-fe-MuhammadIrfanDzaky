@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from 'react-toastify';
 import PageLayout from '@/components/layout/PageLayout';
 import { useAuth } from "@/contexts/AuthContext";
 import { mockApi } from "@/utils/mockApi";
@@ -55,7 +56,7 @@ export default function BookingsPage() {
       setUsers(usersData);
     } catch (error) {
       console.error('Error fetching bookings:', error);
-  window.alert('Failed to load bookings');
+  toast.error('Failed to load bookings');
     } finally {
       setLoading(false);
     }
@@ -91,22 +92,22 @@ export default function BookingsPage() {
   const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
     try {
       await mockApi.bookings.update(bookingId, { status });
-  window.alert('Booking status updated successfully');
+  toast.success('Booking status updated successfully');
       fetchBookings();
     } catch (error) {
       console.error('Error updating booking status:', error);
-  window.alert('Failed to update booking status');
+  toast.error('Failed to update booking status');
     }
   };
 
   const handleDeleteBooking = async (bookingId: string) => {
     try {
       await mockApi.bookings.delete(bookingId);
-  window.alert('Booking deleted successfully');
+  toast.success('Booking deleted successfully');
       fetchBookings();
     } catch (error) {
       console.error('Error deleting booking:', error);
-  window.alert('Failed to delete booking');
+  toast.error('Failed to delete booking');
     }
   };
 

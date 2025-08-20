@@ -1,69 +1,59 @@
-'use client';
+"use client";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import FutsalLogo from "@/components/ui/futsal-logo";
+import TogglePasswordIcon from "@/components/ui/togglePasswordIcon";
+import { useForm } from "react-hook-form";
+import { RoleType } from "@/utils/validateRegisterForm";
 
-import { useState, ChangeEvent, FormEvent } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import FutsalLogo from '@/components/ui/futsal-logo';
-import TogglePasswordIcon from '@/components/ui/togglePasswordIcon';
-import {
-  FormState,
-  FormErrors,
-  RoleType,
-  validateRegisterForm,
-} from '@/utils/validateRegisterForm';
-import Button from '@/components/ui/button';
-
-export default function RegisterPage() {
-  const [form, setForm] = useState<FormState>({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    role: '',
-  });
-
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function  RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const { register: registerUser } = useAuth();
   const router = useRouter();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+    reset,
+  } = useForm({
+    mode: "onBlur",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phone: "",
+      role: "",
+    },
+  });
 
-  function handleChange(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-
-    const validationErrors = validateRegisterForm(form);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) return;
-
-    setIsSubmitting(true);
+  const onSubmit = async (data: any) => {
+    if (data.password !== data.confirmPassword) {
+      setError("confirmPassword", { type: "manual", message: "Passwords do not match" });
+      return;
+    }
     try {
-      const { confirmPassword, ...userData } = form;
+      const { confirmPassword, ...userData } = data;
       const success = await registerUser({
         ...userData,
-        role: form.role as Exclude<RoleType, ''>,
+        role: data.role as Exclude<RoleType, "">,
       });
-
       if (success) {
-        alert('Account created successfully!');
-        router.push('/dashboard');
+        toast.success("Account created successfully!");
+        reset();
+        router.push("/dashboard");
       } else {
-        alert('Failed to create account');
+        toast.error("Failed to create account");
       }
     } catch {
-      alert('An error occurred during registration');
-    } finally {
-      setIsSubmitting(false);
+      toast.error("An error occurred during registration");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
@@ -82,19 +72,20 @@ export default function RegisterPage() {
           <h2 className="text-xl font-bold mb-2">Sign Up</h2>
           <p className="text-gray-600 mb-4">Create your account to start booking courts</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Name */}
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium">Full Name</label>
               <input
                 id="name"
-                name="name"
                 placeholder="Enter your full name"
                 className="border rounded w-full h-9 px-3"
-                value={form.name}
-                onChange={handleChange}
+                {...register("name", {
+                  required: "Full name is required",
+                  minLength: { value: 2, message: "Name must be at least 2 characters" },
+                })}
               />
-              {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
             </div>
 
             {/* Email */}
@@ -102,14 +93,18 @@ export default function RegisterPage() {
               <label htmlFor="email" className="block text-sm font-medium">Email</label>
               <input
                 id="email"
-                name="email"
                 type="email"
                 placeholder="Enter your email"
                 className="border rounded w-full h-9 px-3"
-                value={form.email}
-                onChange={handleChange}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Please enter a valid email address",
+                  },
+                })}
               />
-              {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
+              {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
             </div>
 
             {/* Phone */}
@@ -117,12 +112,14 @@ export default function RegisterPage() {
               <label htmlFor="phone" className="block text-sm font-medium">Phone (Optional)</label>
               <input
                 id="phone"
-                name="phone"
                 placeholder="Enter your phone number"
                 className="border rounded w-full h-9 px-3"
-                value={form.phone}
-                onChange={handleChange}
+                {...register("phone", {
+                  required: "Phone number is required",
+                  minLength: { value: 8, message: "Phone number must be at least 8 digits" },
+                })}
               />
+              {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
             </div>
 
             {/* Role */}
@@ -130,16 +127,14 @@ export default function RegisterPage() {
               <label htmlFor="role" className="block text-sm font-medium">Account Type</label>
               <select
                 id="role"
-                name="role"
                 className="border rounded w-full h-9 px-3"
-                value={form.role}
-                onChange={handleChange}
+                {...register("role", { required: "Role is required" })}
               >
                 <option value="" disabled>Select account type</option>
                 <option value="regular_user">Regular User</option>
                 <option value="field_owner">Field Owner</option>
               </select>
-              {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
+              {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
             </div>
 
             {/* Password */}
@@ -148,23 +143,24 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Create a password"
                   className="border rounded w-full h-9 px-3 pr-10"
-                  value={form.password}
-                  onChange={handleChange}
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: { value: 6, message: "Password must be at least 6 characters" },
+                  })}
                 />
-                <Button
+                <button
                   type="button"
                   className="absolute right-0 top-0 h-full px-3 text-gray-500"
-                  onClick={() => setShowPassword(prev => !prev)}
+                  onClick={() => setShowPassword((v) => !v)}
                   tabIndex={-1}
                 >
                   <TogglePasswordIcon isVisible={showPassword} />
-                </Button>
+                </button>
               </div>
-              {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
+              {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
             </div>
 
             {/* Confirm Password */}
@@ -173,33 +169,33 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   className="border rounded w-full h-9 px-3 pr-10"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
+                  {...register("confirmPassword", {
+                    required: "Please confirm your password",
+                  })}
                 />
-                <Button
+                <button
                   type="button"
                   className="absolute right-0 top-0 h-full px-3 text-gray-500"
-                  onClick={() => setShowConfirmPassword(prev => !prev)}
+                  onClick={() => setShowConfirmPassword((v) => !v)}
                   tabIndex={-1}
                 >
                   <TogglePasswordIcon isVisible={showConfirmPassword} />
-                </Button>
+                </button>
               </div>
-              {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>}
             </div>
 
             {/* Submit */}
-            <Button
+            <button
               type="submit"
               className="w-full bg-blue-600 text-white rounded px-4 py-2 flex items-center justify-center disabled:opacity-50"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
-            </Button>
+              {isSubmitting ? "Creating Account..." : "Create Account"}
+            </button>
           </form>
 
           {/* Login Link */}

@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
+import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockApi } from '@/utils/mockApi';
 import { Court } from '@/types';
-import { hasPermission, canAccessCourt, canManageCourt } from '@/utils/roleGuard';
+import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
 import Link from 'next/link';
 
 export default function CourtsPage() {
@@ -26,6 +27,8 @@ export default function CourtsPage() {
         let filteredData = data;
         if (user?.role === 'field_owner') {
           filteredData = data.filter(court => court.ownerId === user.id);
+        } else if (user?.role === 'super_admin') {
+          filteredData = data; // super_admin sees all courts
         } else if (user?.role === 'regular_user') {
           filteredData = data;
         }
@@ -33,7 +36,7 @@ export default function CourtsPage() {
         setFilteredCourts(filteredData); // Show all by default
       } catch (error) {
         console.error('Error fetching courts:', error);
-        window.alert('Failed to load courts');
+  toast.error('Failed to load courts');
       } finally {
         setLoading(false);
       }
@@ -86,7 +89,7 @@ export default function CourtsPage() {
           setCourts(filteredData);
         } catch (error) {
           console.error('Error fetching courts:', error);
-          window.alert('Failed to load courts');
+            toast.error('Failed to load courts');
         } finally {
           setLoading(false);
         }
@@ -94,7 +97,7 @@ export default function CourtsPage() {
       fetchCourts();
     } catch (error) {
       console.error('Error deleting court:', error);
-  window.alert('Failed to delete court');
+      toast.error('Failed to delete court');
     }
   };
 

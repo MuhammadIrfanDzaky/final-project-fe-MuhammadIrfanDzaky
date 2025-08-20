@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -45,13 +46,13 @@ export default function LoginPage() {
     try {
       const success = await login(data.email, data.password);
       if (success) {
-        alert('Login successful!');
+        toast.success('Login successful!');
         router.push('/dashboard');
       } else {
-        alert('Invalid email or password');
+        toast.error('Invalid email or password');
       }
     } catch {
-      alert('An error occurred during login');
+      toast.error('An error occurred during login');
     }
   };
 

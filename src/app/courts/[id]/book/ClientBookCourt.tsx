@@ -14,14 +14,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-// ...existing code...
+import { toast } from 'react-toastify';
 import Link from 'next/link';
 
 interface ClientBookCourtProps {
@@ -32,8 +32,6 @@ export default function ClientBookCourt({
   courtId,
 }: ClientBookCourtProps) {
   const { user } = useAuth();
-  // ...existing code...
-  const router = useRouter();
   const [court, setCourt] = useState<Court | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -43,20 +41,20 @@ export default function ClientBookCourt({
     endTime: '',
     notes: '',
   });
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchCourt() {
       try {
         const data = await mockApi.courts.getById(courtId);
         if (!data || !canAccessCourt(user, data)) {
-          window.alert('You do not have permission to book this court');
+          toast.error('You do not have permission to book this court');
           router.push('/courts');
         } else {
           setCourt(data);
         }
       } catch (error) {
-        console.error('Error fetching court:', error);
-  window.alert('Failed to load court details');
+        toast.error('Failed to load court details');
         router.push('/courts');
       } finally {
         setLoading(false);
@@ -91,23 +89,21 @@ export default function ClientBookCourt({
       !bookingData.startTime ||
       !bookingData.endTime
     ) {
-  window.alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
     const duration = calculateDuration();
     if (duration < 1) {
-  window.alert('Minimum booking duration is 1 hour');
+      toast.error('Minimum booking duration is 1 hour');
       return;
     }
     setSubmitting(true);
     try {
       // Simulate API create
-      await new Promise((r) => setTimeout(r, 1000));
-  window.alert('Court booked successfully!');
+      toast.success('Court booked successfully!');
       router.push('/bookings');
     } catch (error) {
-      console.error('Error booking court:', error);
-  window.alert('Failed to book court. Please try again.');
+      toast.error('Failed to book court. Please try again.');
     } finally {
       setSubmitting(false);
     }

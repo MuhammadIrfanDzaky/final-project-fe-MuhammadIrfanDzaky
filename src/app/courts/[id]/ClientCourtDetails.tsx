@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockApi } from '@/utils/mockApi';
 import { Court } from '@/types';
+import { toast } from 'react-toastify';
 import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -22,39 +23,52 @@ export default function ClientCourtDetails({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Only run permission check after user context is loaded
+    if (!user) return;
+    let isMounted = true;
     async function fetchCourt() {
       try {
         const data = await mockApi.courts.getById(courtId);
+        if (!isMounted) return;
         if (!data || !canAccessCourt(user, data)) {
-          window.alert('You do not have permission to view this court');
+          // Debug log for permission issue
+          console.warn('[Court Permission Debug]', {
+            userId: user?.id,
+            userRole: user?.role,
+            courtOwnerId: data?.ownerId,
+            courtId: data?.id,
+            canAccess: canAccessCourt(user, data),
+          });
+          toast.error('You do not have permission to view this court');
           router.push('/courts');
         } else {
           setCourt(data);
         }
       } catch (error) {
         console.error('Error fetching court:', error);
-  window.alert('Failed to load court details');
+        toast.error('Failed to load court details');
         router.push('/courts');
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
     fetchCourt();
+    return () => { isMounted = false; };
   }, [courtId, user, router]);
 
   const handleDeleteCourt = async () => {
     if (!court) return;
     try {
       await mockApi.courts.delete(court.id);
-  window.alert('Court deleted successfully');
+        toast.success('Court deleted successfully');
       router.push('/courts');
     } catch (error) {
       console.error('Error deleting court:', error);
-  window.alert('Failed to delete court');
+    toast.error('Failed to delete court');
     }
   };
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <ProtectedRoute route="/courts">
         <PageLayout title="Court Details">
@@ -138,9 +152,6 @@ export default function ClientCourtDetails({
                   alt={court.name}
                   className="w-full h-64 object-cover rounded-lg"
                 />
-                <div className="absolute top-4 right-4">
-                  <span className="inline-block bg-white/90 text-gray-900 text-lg px-3 py-1 rounded shadow">${court.pricePerHour}/hr</span>
-                </div>
               </div>
               <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center gap-2 text-lg font-semibold mb-2">
