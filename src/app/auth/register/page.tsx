@@ -109,7 +109,7 @@ export default function  RegisterPage() {
 
             {/* Phone */}
             <div className="space-y-2">
-              <label htmlFor="phone" className="block text-sm font-medium">Phone (Optional)</label>
+              <label htmlFor="phone" className="block text-sm font-medium">Phone</label>
               <input
                 id="phone"
                 placeholder="Enter your phone number"
