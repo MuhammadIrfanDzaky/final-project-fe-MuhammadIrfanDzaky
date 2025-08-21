@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 import { Court } from '@/types';
 import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
 import Link from 'next/link';
@@ -23,14 +23,14 @@ export default function CourtsPage() {
   useEffect(() => {
     const fetchCourts = async () => {
       try {
-        const data = await mockApi.courts.getAll();
-        let filteredData = data;
+  const data = await api.getCourts();
+    let filteredData: Court[] = data as Court[];
         if (user?.role === 'field_owner') {
-          filteredData = data.filter(court => court.ownerId === user.id);
+          filteredData = (data as Court[]).filter((court: Court) => court.ownerId === user.id);
         } else if (user?.role === 'super_admin') {
-          filteredData = data; // super_admin sees all courts
+          filteredData = data as Court[]; // super_admin sees all courts
         } else if (user?.role === 'regular_user') {
-          filteredData = data;
+          filteredData = data as Court[];
         }
         setCourts(filteredData);
         setFilteredCourts(filteredData); // Show all by default
@@ -74,27 +74,15 @@ export default function CourtsPage() {
 
   const handleDeleteCourt = async (courtId: string) => {
     try {
-      await mockApi.courts.delete(courtId);
+    await api.deleteCourt(courtId);
   window.alert('Court deleted successfully');
       // Refetch courts after delete
-      const fetchCourts = async () => {
-        try {
-          const data = await mockApi.courts.getAll();
-          let filteredData = data;
-          if (user?.role === 'field_owner') {
-            filteredData = data.filter(court => court.ownerId === user.id);
-          } else if (user?.role === 'regular_user') {
-            filteredData = data;
-          }
-          setCourts(filteredData);
-        } catch (error) {
-          console.error('Error fetching courts:', error);
-            toast.error('Failed to load courts');
-        } finally {
-          setLoading(false);
+        const data = await api.getCourts() as Court[];
+        let filteredData: Court[] = data;
+        if (user?.role === 'field_owner') {
+          filteredData = data.filter((court: Court) => court.ownerId === user.id);
         }
-      };
-      fetchCourts();
+        setCourts(filteredData);
     } catch (error) {
       console.error('Error deleting court:', error);
       toast.error('Failed to delete court');

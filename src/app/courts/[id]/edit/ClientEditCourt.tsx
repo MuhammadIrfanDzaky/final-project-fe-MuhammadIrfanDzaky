@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 import { Court } from '@/types';
 import { canManageCourt } from '@/utils/roleGuard';
 import PageLayout from '@/components/layout/PageLayout';
@@ -99,7 +99,7 @@ export default function ClientEditCourt({
         let isMounted = true;
         async function fetchCourt() {
             try {
-                const data = await mockApi.courts.getById(courtId);
+                const data = await api.getCourtById(courtId) as Court;
                 if (!isMounted) return;
                 if (!data || !canManageCourt(user, data)) {
                     toast.error('You do not have permission to edit this court');
@@ -159,7 +159,7 @@ export default function ClientEditCourt({
         if (!court) return;
         setSaving(true);
         try {
-            await mockApi.courts.update(court.id, data);
+            await api.updateCourt(court.id, data);
             toast.success('Court updated successfully!');
             router.push(`/courts/${court.id}`);
         } catch (error) {

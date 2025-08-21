@@ -1,10 +1,10 @@
 import ClientEditCourt from './ClientEditCourt';
 import { notFound } from 'next/navigation';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 
 export async function generateStaticParams() {
-  const courts = await mockApi.courts.getAll();
-  return courts.map((court) => ({ id: court.id }));
+  const courts = await api.getCourts();
+  return (courts as any[]).map((court: any) => ({ id: court.id }));
 }
 
 interface EditCourtPageProps {

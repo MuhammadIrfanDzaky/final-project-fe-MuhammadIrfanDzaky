@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 import { Court } from '@/types';
 import { toast } from 'react-toastify';
 import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
@@ -28,26 +28,14 @@ export default function ClientCourtDetails({
     let isMounted = true;
     async function fetchCourt() {
       try {
-        const data = await mockApi.courts.getById(courtId);
-        if (!isMounted) return;
-        if (!data || !canAccessCourt(user, data)) {
-          // Debug log for permission issue
-          console.warn('[Court Permission Debug]', {
-            userId: user?.id,
-            userRole: user?.role,
-            courtOwnerId: data?.ownerId,
-            courtId: data?.id,
-            canAccess: canAccessCourt(user, data),
-          });
-          toast.error('You do not have permission to view this court');
-          router.push('/courts');
-        } else {
-          setCourt(data);
-        }
-      } catch (error) {
-        console.error('Error fetching court:', error);
-        toast.error('Failed to load court details');
-        router.push('/courts');
+    const data = await api.getCourtById(courtId);
+    if (!isMounted) return;
+    if (!data || !canAccessCourt(user, data)) {
+      toast.error('You do not have permission to view this court');
+      router.push('/courts');
+      return;
+    }
+    setCourt(data as Court);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -59,7 +47,7 @@ export default function ClientCourtDetails({
   const handleDeleteCourt = async () => {
     if (!court) return;
     try {
-      await mockApi.courts.delete(court.id);
+  await api.deleteCourt(court.id);
         toast.success('Court deleted successfully');
       router.push('/courts');
     } catch (error) {

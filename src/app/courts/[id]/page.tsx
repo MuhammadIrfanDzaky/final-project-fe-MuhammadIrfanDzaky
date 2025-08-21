@@ -1,11 +1,11 @@
 import React from 'react';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 import ClientCourtDetails from './ClientCourtDetails';
 
 export async function generateStaticParams() {
   try {
-    const courts = await mockApi.courts.getAll();
-    return courts.map((court) => ({ id: court.id }));
+  const courts = await api.getCourts();
+  return (courts as any[]).map((court: any) => ({ id: court.id }));
   } catch {
     return [];
   }

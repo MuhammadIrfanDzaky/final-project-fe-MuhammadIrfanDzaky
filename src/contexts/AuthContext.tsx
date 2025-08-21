@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthContextType } from '@/types';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -36,8 +36,8 @@ export function AuthProvider(props: AuthProviderProps) {
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const result = await mockApi.auth.login(email, password);
-      if (result.success && result.user) {
+      const result = await api.login({ email, password }) as any;
+      if (result && result.success && result.user) {
         setUser(result.user);
         localStorage.setItem('user', JSON.stringify(result.user));
         return true;
@@ -54,8 +54,8 @@ export function AuthProvider(props: AuthProviderProps) {
   const register = async (userData: Omit<User, 'id' | 'createdAt' | 'isActive'>): Promise<boolean> => {
     setLoading(true);
     try {
-      const result = await mockApi.auth.register(userData);
-      if (result.success && result.user) {
+      const result = await api.register(userData) as any;
+      if (result && result.success && result.user) {
         setUser(result.user);
         localStorage.setItem('user', JSON.stringify(result.user));
         return true;

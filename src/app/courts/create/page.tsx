@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/utils/mockApi';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { api } from '@/utils/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -113,7 +113,7 @@ export default function CreateCourtPage() {
     }
     setLoading(true);
     try {
-      await mockApi.courts.create({
+  await api.createCourt({
         ...data,
         ownerId: user.role === 'field_owner' ? user.id : (user.role === 'super_admin' ? user.id : ''),
         isActive: true,

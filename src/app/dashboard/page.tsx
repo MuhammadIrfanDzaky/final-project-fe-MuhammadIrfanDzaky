@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 import { DashboardStats, Booking, Court, User } from '@/types';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -23,15 +23,52 @@ export default function DashboardPage() {
       return;
     }
 
+
     const fetchDashboardData = async () => {
       try {
-        const [statsData, courtsData, usersData] = await Promise.all([
-          mockApi.dashboard.getStats(user?.id, user?.role),
-          mockApi.courts.getAll(),
-          user?.role === 'super_admin' ? mockApi.users.getAll() : Promise.resolve([]),
+        // Fetch courts and users
+        const [courtsDataRaw, usersDataRaw] = await Promise.all([
+          api.getCourts(),
+          user?.role === 'super_admin' ? api.getUsers() : Promise.resolve([]),
         ]);
-        
-        setStats(statsData);
+        const courtsData = courtsDataRaw as Court[];
+        const usersData = usersDataRaw as User[];
+
+        // Calculate stats (simulate dashboard stats aggregation)
+        // In a real app, this should be a dedicated endpoint, but we aggregate here for now
+        const bookingsRaw = await api.getBookings();
+        const bookings = bookingsRaw as Booking[];
+        const userBookings = user?.role === 'field_owner'
+          ? bookings.filter((b) => courtsData.some((c) => c.id === b.courtId && c.ownerId === user.id))
+          : bookings;
+
+        const totalRevenue = userBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+        const activeCourts = user?.role === 'field_owner'
+          ? courtsData.filter((c) => c.ownerId === user.id && c.isActive).length
+          : courtsData.filter((c) => c.isActive).length;
+        const totalUsers = usersData.length;
+        const totalBookings = userBookings.length;
+        const now = new Date();
+        const recentBookings = userBookings
+          .filter((b) => {
+            const created = new Date(b.createdAt);
+            return (now.getTime() - created.getTime()) < 7 * 24 * 60 * 60 * 1000;
+          })
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 5);
+        const upcomingBookings = userBookings
+          .filter((b) => new Date(b.date) > now && b.status === 'confirmed')
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .slice(0, 5);
+
+        setStats({
+          totalBookings,
+          totalRevenue,
+          activeCourts,
+          totalUsers,
+          recentBookings,
+          upcomingBookings,
+        });
         setCourts(courtsData);
         setUsers(usersData);
       } catch (error) {

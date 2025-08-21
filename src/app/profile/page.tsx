@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { toast } from 'react-toastify';
@@ -71,7 +71,7 @@ export default function ProfilePage() {
         }
         updateData.password = form.newPassword;
       }
-      await mockApi.users.update(user.id, updateData);
+  await api.updateUser(user.id, updateData);
   toast.success('Profile updated successfully');
       setForm({ ...form, currentPassword: '', newPassword: '', confirmPassword: '' });
       setIsDirty(false);

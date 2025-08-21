@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { mockApi } from '@/utils/mockApi';
+import { api } from '@/utils/api';
 import { Court } from '@/types';
 import { canAccessCourt } from '@/utils/roleGuard';
 import PageLayout from '@/components/layout/PageLayout';
@@ -46,12 +46,12 @@ export default function ClientBookCourt({
   useEffect(() => {
     async function fetchCourt() {
       try {
-        const data = await mockApi.courts.getById(courtId);
+        const data = await api.getCourtById(courtId);
         if (!data || !canAccessCourt(user, data)) {
           toast.error('You do not have permission to book this court');
           router.push('/courts');
         } else {
-          setCourt(data);
+          setCourt(data as Court);
         }
       } catch (error) {
         toast.error('Failed to load court details');

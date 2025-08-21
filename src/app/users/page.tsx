@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockApi } from '@/utils/mockApi';
 import { User as UserType } from '@/types';
 import { hasPermission } from '@/utils/roleGuard';
 import PageLayout from '@/components/layout/PageLayout';
+import { api } from '@/utils/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function UsersPage() {
@@ -29,8 +29,8 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const data = await mockApi.users.getAll();
-      setUsers(data);
+  const data = await api.getUsers();
+  setUsers(data as UserType[]);
     } catch (error) {
       console.error('Error fetching users:', error);
   window.alert('Failed to load users');
@@ -64,20 +64,20 @@ export default function UsersPage() {
 
   const handleUpdateUser = async (userId: string, userData: Partial<UserType>) => {
     try {
-      await mockApi.users.update(userId, userData);
-  window.alert('User updated successfully');
+      await api.updateUser(userId, userData);
+      window.alert('User updated successfully');
       fetchUsers();
       setEditDialogOpen(false);
       setSelectedUser(null);
     } catch (error) {
       console.error('Error updating user:', error);
-  window.alert('Failed to update user');
+      window.alert('Failed to update user');
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      await mockApi.users.delete(userId);
+  await api.deleteUser(userId);
       window.alert('User deleted successfully');
       fetchUsers();
     } catch (error) {
@@ -88,7 +88,7 @@ export default function UsersPage() {
 
   const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
     try {
-      await mockApi.users.update(userId, { isActive });
+      await api.updateUser(userId, { isActive });
       window.alert(`User ${isActive ? 'activated' : 'deactivated'} successfully`);
       fetchUsers();
     } catch (error) {

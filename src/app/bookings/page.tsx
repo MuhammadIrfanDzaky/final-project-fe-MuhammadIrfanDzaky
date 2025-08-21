@@ -1,11 +1,10 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
 import PageLayout from '@/components/layout/PageLayout';
 import { useAuth } from "@/contexts/AuthContext";
-import { mockApi } from "@/utils/mockApi";
+import { api } from "@/utils/api";
 import { Booking, Court, User } from "@/types";
 import { hasPermission, canAccessBooking } from "@/utils/roleGuard";
 
@@ -31,11 +30,15 @@ export default function BookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const [bookingsData, courtsData, usersData] = await Promise.all([
-        mockApi.bookings.getAll(),
-        mockApi.courts.getAll(),
-        user?.role === 'super_admin' ? mockApi.users.getAll() : Promise.resolve([]),
+      const [bookingsDataRaw, courtsDataRaw, usersDataRaw] = await Promise.all([
+        api.getBookings(),
+        api.getCourts(),
+        user?.role === 'super_admin' ? api.getUsers() : Promise.resolve([]),
       ]);
+
+      const bookingsData = bookingsDataRaw as Booking[];
+      const courtsData = courtsDataRaw as Court[];
+      const usersData = usersDataRaw as User[];
 
       // Filter bookings based on user role and permissions
       let filteredData = bookingsData;
@@ -91,7 +94,7 @@ export default function BookingsPage() {
 
   const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
     try {
-      await mockApi.bookings.update(bookingId, { status });
+  await api.updateBooking(bookingId, { status });
   toast.success('Booking status updated successfully');
       fetchBookings();
     } catch (error) {
@@ -102,7 +105,7 @@ export default function BookingsPage() {
 
   const handleDeleteBooking = async (bookingId: string) => {
     try {
-      await mockApi.bookings.delete(bookingId);
+  await api.deleteBooking(bookingId);
   toast.success('Booking deleted successfully');
       fetchBookings();
     } catch (error) {
