@@ -1,4 +1,4 @@
-const BASE_URL = 'https://final-project-be-muhammadirfandzaky-production.up.railway.app';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
