@@ -1,4 +1,3 @@
-import React from 'react';
 import ClientBookCourt from './ClientBookCourt';
 
 export default function BookCourtPage({ params }: { params: { id: string } }) {
