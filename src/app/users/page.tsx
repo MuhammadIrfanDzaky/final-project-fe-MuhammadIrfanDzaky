@@ -7,6 +7,7 @@ import { hasPermission } from '@/utils/roleGuard';
 import PageLayout from '@/components/layout/PageLayout';
 import { api } from '@/utils/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { toast } from 'react-toastify';
 
 export default function UsersPage() {
   const { user } = useAuth();
@@ -62,38 +63,38 @@ export default function UsersPage() {
     setFilteredUsers(filtered);
   };
 
-  const handleUpdateUser = async (userId: string, userData: Partial<UserType>) => {
+  const handleUpdateUser = async (userId: number, userData: Partial<UserType>) => {
     try {
       await api.updateUser(userId, userData);
-      window.alert('User updated successfully');
+      toast.error('User updated successfully');
       fetchUsers();
       setEditDialogOpen(false);
       setSelectedUser(null);
     } catch (error) {
       console.error('Error updating user:', error);
-      window.alert('Failed to update user');
+      toast.error('Failed to update user');
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: number) => {
     try {
-  await api.deleteUser(userId);
-      window.alert('User deleted successfully');
+      await api.deleteUser(userId);
+      toast.success('User deleted successfully');
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
-      window.alert('Failed to delete user');
+      toast.error('Failed to delete user');
     }
   };
 
-  const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
+  const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
     try {
       await api.updateUser(userId, { isActive });
-      window.alert(`User ${isActive ? 'activated' : 'deactivated'} successfully`);
+      toast.success(`User ${isActive ? 'activated' : 'deactivated'} successfully`);
       fetchUsers();
     } catch (error) {
       console.error('Error updating user status:', error);
-      window.alert('Failed to update user status');
+      toast.error('Failed to update user status');
     }
   };
 

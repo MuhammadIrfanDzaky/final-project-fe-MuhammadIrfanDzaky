@@ -18,24 +18,24 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   // Courts
   getCourts: () => request('/api/courts'),
-  getCourtById: (id: string) => request(`/api/courts/${id}`),
+  getCourtById: (id: number) => request(`/api/courts/${id}`),
   createCourt: (data: any) => request('/api/courts', { method: 'POST', body: JSON.stringify(data) }),
-  updateCourt: (id: string, data: any) => request(`/api/courts/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteCourt: (id: string) => request(`/api/courts/${id}`, { method: 'DELETE' }),
+  updateCourt: (id: number, data: any) => request(`/api/courts/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteCourt: (id: number) => request(`/api/courts/${id}`, { method: 'DELETE' }),
 
   // Users
   getUsers: () => request('/api/users'),
-  getUserById: (id: string) => request(`/api/users/${id}`),
+  getUserById: (id: number) => request(`/api/users/${id}`),
   createUser: (data: any) => request('/api/users', { method: 'POST', body: JSON.stringify(data) }),
-  updateUser: (id: string, data: any) => request(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteUser: (id: string) => request(`/api/users/${id}`, { method: 'DELETE' }),
+  updateUser: (id: number, data: any) => request(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteUser: (id: number) => request(`/api/users/${id}`, { method: 'DELETE' }),
 
   // Bookings
   getBookings: () => request('/api/bookings'),
-  getBookingById: (id: string) => request(`/api/bookings/${id}`),
-  createBooking: (data: { courtId: string; userId: string; date: string; time: string }) => request('/api/bookings', { method: 'POST', body: JSON.stringify(data) }),
-  updateBooking: (id: string, data: any) => request(`/api/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteBooking: (id: string) => request(`/api/bookings/${id}`, { method: 'DELETE' }),
+  getBookingById: (id: number) => request(`/api/bookings/${id}`),
+  createBooking: (data: { courtId: number; userId: number; date: string; time: string }) => request('/api/bookings', { method: 'POST', body: JSON.stringify(data) }),
+  updateBooking: (id: number, data: any) => request(`/api/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteBooking: (id: number) => request(`/api/bookings/${id}`, { method: 'DELETE' }),
 
   // Auth (example, adjust as needed)
   login: (data: { email: string; password: string }) => request('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
