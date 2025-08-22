@@ -92,7 +92,7 @@ export default function BookingsPage() {
     setFilteredBookings(filtered);
   };
 
-  const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
+  const handleUpdateBookingStatus = async (bookingId: number, status: Booking['status']) => {
     try {
   await api.updateBooking(bookingId, { status });
   toast.success('Booking status updated successfully');
@@ -103,7 +103,7 @@ export default function BookingsPage() {
     }
   };
 
-  const handleDeleteBooking = async (bookingId: string) => {
+  const handleDeleteBooking = async (bookingId: number) => {
     try {
   await api.deleteBooking(bookingId);
   toast.success('Booking deleted successfully');

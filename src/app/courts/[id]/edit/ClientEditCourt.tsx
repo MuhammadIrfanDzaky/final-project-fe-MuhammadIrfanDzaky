@@ -51,7 +51,7 @@ const predefinedFacilities = [
 ];
 
 interface ClientEditCourtProps {
-    courtId: string;
+    courtId: number;
 }
 
 export default function ClientEditCourt({

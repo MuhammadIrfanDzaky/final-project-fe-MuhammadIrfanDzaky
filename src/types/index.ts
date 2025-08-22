@@ -40,7 +40,7 @@ export interface Booking {
 }
 
 export interface TimeSlot {
-  id: string;
+  id: number;
   time: string;
   isAvailable: boolean;
   isBooked: boolean;

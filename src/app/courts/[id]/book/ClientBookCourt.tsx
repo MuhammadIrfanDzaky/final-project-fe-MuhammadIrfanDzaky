@@ -25,7 +25,7 @@ import { toast } from 'react-toastify';
 import Link from 'next/link';
 
 interface ClientBookCourtProps {
-  courtId: string;
+  courtId: number;
 }
 
 export default function ClientBookCourt({

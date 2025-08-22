@@ -11,7 +11,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface ClientCourtDetailsProps {
-  courtId: string;
+  courtId: number;
 }
 
 export default function ClientCourtDetails({

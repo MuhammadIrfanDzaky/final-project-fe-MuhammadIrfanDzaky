@@ -18,7 +18,7 @@ export default function CourtsPage() {
   const [priceFilter, setPriceFilter] = useState<string>('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [deleteCourtId, setDeleteCourtId] = useState<string | null>(null);
+  const [deleteCourtId, setDeleteCourtId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchCourts = async () => {
@@ -72,7 +72,7 @@ export default function CourtsPage() {
     setFilteredCourts(filtered);
   }, [courts, searchTerm, priceFilter, locationFilter, statusFilter]);
 
-  const handleDeleteCourt = async (courtId: string) => {
+  const handleDeleteCourt = async (courtId: number) => {
     try {
     await api.deleteCourt(courtId);
   window.alert('Court deleted successfully');
