@@ -1,7 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...((options.headers && typeof options.headers === 'object' && !Array.isArray(options.headers) ? options.headers : {}) as Record<string, string>),
