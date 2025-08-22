@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import FutsalLogo from '@/components/ui/futsal-logo';
-import { api } from '@/utils/api';
 
 interface LoginFormData {
   email: string;

@@ -39,7 +39,7 @@ export function AuthProvider(props: AuthProviderProps) {
       if (result && result.token && result.user) {
         setUser(result.user);
         localStorage.setItem('user', JSON.stringify(result.user));
-        localStorage.setItem('token', result.token);
+        sessionStorage.setItem('token', result.token);
         return true;
       }
       return false;
