@@ -14,10 +14,12 @@ export const Avatar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
 Avatar.displayName = 'Avatar';
 
 export const AvatarImage = React.forwardRef<HTMLImageElement, React.ImgHTMLAttributes<HTMLImageElement>>(
-  function AvatarImage({ className, ...props }, ref) {
+  function AvatarImage({ className, src, ...props }, ref) {
+    if (!src) return null;
     return (
       <img
         ref={ref}
+        src={src}
         className={`aspect-square h-full w-full${className ? ' ' + className : ''}`}
         {...props}
       />
