@@ -32,8 +32,8 @@ export default function  RegisterPage() {
     },
   });
 
-  const onSubmit = async (data: { email: string; password: string; name: string; role: string; phone: string; }) => {
-    if (data.password !== data.password) {
+  const onSubmit = async (data: { email: string; password: string; confirmPassword: string; name: string; role: string; phone: string; }) => {
+    if (data.password !== data.confirmPassword) {
       setError("confirmPassword", { type: "manual", message: "Passwords do not match" });
       return;
     }
@@ -42,6 +42,7 @@ export default function  RegisterPage() {
         ...data,
         role: data.role as Exclude<RoleType, "">,
       });
+      console.log("Registration result:", success);
       if (success) {
         toast.success("Account created successfully!");
         reset();

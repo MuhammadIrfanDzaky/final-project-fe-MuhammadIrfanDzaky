@@ -56,9 +56,10 @@ export function AuthProvider(props: AuthProviderProps) {
     setLoading(true);
     try {
       const result = await api.register(userData) as any;
-      if (result && result.success && result.user) {
+      if (result && result.token && result.user) {
         setUser(result.user);
         localStorage.setItem('user', JSON.stringify(result.user));
+        sessionStorage.setItem('token', result.token);
         return true;
       }
       return false;
