@@ -1,21 +1,24 @@
 export interface User {
-  id: string;
+  id: number;
   email: string;
   name: string;
-  role: 'super_admin' | 'field_owner' | 'regular_user';
-  avatar?: string;
   phone?: string;
-  createdAt: string;
+  avatar?: string;
+  role: 'super_admin' | 'field_owner' | 'regular_user';
+  password: string;
   isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+
 }
 
 export interface Court {
-  id: string;
+  id: number;
   name: string;
   description: string;
   image: string;
   pricePerHour: number;
-  ownerId: string;
+  ownerId: number;
   facilities: string[];
   location: string;
   isActive: boolean;
@@ -23,9 +26,9 @@ export interface Court {
 }
 
 export interface Booking {
-  id: string;
-  courtId: string;
-  userId: string;
+  id: number;
+  courtId: number;
+  userId: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -56,7 +59,8 @@ export interface DashboardStats {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: Omit<User, 'id' | 'createdAt' | 'isActive'>) => Promise<boolean>;
+  register: (userData: { email: string; password: string; name: string; role: string; phone: string; }) => Promise<boolean>;
+  // register: (userData: Omit<User, 'id' | 'createdAt' | 'isActive'>) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }

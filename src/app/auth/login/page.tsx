@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import FutsalLogo from '@/components/ui/futsal-logo';
+import { api } from '@/utils/api';
 
 interface LoginFormData {
   email: string;
@@ -40,14 +41,14 @@ export default function LoginPage() {
     if (!data.password) {
       setError('password', { message: 'Password is required' });
     }
-
+    console.log(data);
     if (Object.keys(errors).length > 0) return;
 
     try {
       const success = await login(data.email, data.password);
       if (success) {
-        toast.success('Login successful!');
         router.push('/dashboard');
+        toast.success('Login successful!');
       } else {
         toast.error('Invalid email or password');
       }

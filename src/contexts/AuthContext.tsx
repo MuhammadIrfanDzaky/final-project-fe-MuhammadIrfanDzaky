@@ -14,7 +14,6 @@ export const useAuth = () => {
   return context;
 };
 
-
 export type AuthProviderProps = {
   children: React.ReactNode;
 };
@@ -37,9 +36,10 @@ export function AuthProvider(props: AuthProviderProps) {
     setLoading(true);
     try {
       const result = await api.login({ email, password }) as any;
-      if (result && result.success && result.user) {
+      if (result && result.token && result.user) {
         setUser(result.user);
         localStorage.setItem('user', JSON.stringify(result.user));
+        localStorage.setItem('token', result.token);
         return true;
       }
       return false;
@@ -51,7 +51,8 @@ export function AuthProvider(props: AuthProviderProps) {
     }
   };
 
-  const register = async (userData: Omit<User, 'id' | 'createdAt' | 'isActive'>): Promise<boolean> => {
+  // const register = async (userData: Omit<User, 'id' | 'createdAt' | 'isActive'>): Promise<boolean> => {
+  const register = async (userData: { email: string; password: string; name: string; role: string; phone: string; }): Promise<boolean> => {
     setLoading(true);
     try {
       const result = await api.register(userData) as any;

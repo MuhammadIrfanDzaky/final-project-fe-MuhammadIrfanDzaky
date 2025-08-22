@@ -32,15 +32,14 @@ export default function  RegisterPage() {
     },
   });
 
-  const onSubmit = async (data: any) => {
-    if (data.password !== data.confirmPassword) {
+  const onSubmit = async (data: { email: string; password: string; name: string; role: string; phone: string; }) => {
+    if (data.password !== data.password) {
       setError("confirmPassword", { type: "manual", message: "Passwords do not match" });
       return;
     }
     try {
-      const { confirmPassword, ...userData } = data;
       const success = await registerUser({
-        ...userData,
+        ...data,
         role: data.role as Exclude<RoleType, "">,
       });
       if (success) {
