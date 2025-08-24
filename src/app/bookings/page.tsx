@@ -339,41 +339,39 @@ export default function BookingsPage() {
                           onClick={() => setSelectedBooking(null)}
                         >
                           <div
-                            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
+                            className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg"
                             onClick={e => e.stopPropagation()}
                           >
-                            <h2 className="text-lg font-bold mb-2">Booking Details</h2>
-                            <p className="text-gray-600 mb-4">Complete information for this booking</p>
-                            <div className="space-y-4">
-                              <div>
-                                <h4 className="font-medium">Court Information</h4>
-                                <p className="text-sm text-gray-600">{court?.name}</p>
-                                <p className="text-sm text-gray-600">{court?.location}</p>
-                              </div>
-                              <div>
-                                <h4 className="font-medium">Booking Details</h4>
-                                <p className="text-sm text-gray-600">Date: {selectedBooking.date}</p>
-                                <p className="text-sm text-gray-600">Time: {selectedBooking.startTime} - {selectedBooking.endTime}</p>
-                                <p className="text-sm text-gray-600">Total: ${selectedBooking.totalPrice}</p>
-                              </div>
-                              {(user?.role === 'super_admin' || user?.role === 'field_owner') && (
-                                <div>
-                                  <h4 className="font-medium">Customer</h4>
-                                  <p className="text-sm text-gray-600">{bookingUser?.name}</p>
-                                  <p className="text-sm text-gray-600">{bookingUser?.email}</p>
-                                </div>
-                              )}
-                              <div className="flex gap-2">
-                                <span className={getStatusColor(selectedBooking.status)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
-                                  {selectedBooking.status}
-                                </span>
-                                <span className={getPaymentStatusColor(selectedBooking.paymentStatus)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
-                                  {selectedBooking.paymentStatus}
-                                </span>
-                              </div>
+                            <h2 className="text-2xl font-bold mb-2">Booking Details</h2>
+                            <p className="text-gray-600 mb-6">Complete information for this booking</p>
+                            <div className="mb-6">
+                              <h4 className="font-semibold mb-1">Court Information</h4>
+                              <div className="text-sm text-gray-800">{court?.name}</div>
+                              <div className="text-sm text-gray-600">{court?.location}</div>
                             </div>
-                            <div className="flex justify-end mt-6">
-                              <button className="border rounded px-3 py-1 bg-gray-100 hover:bg-gray-200" onClick={() => setSelectedBooking(null)}>
+                            <div className="mb-6">
+                              <h4 className="font-semibold mb-1">Booking Details</h4>
+                              <div className="text-sm text-gray-800">Date: <span className="text-gray-600">{selectedBooking.date}</span></div>
+                              <div className="text-sm text-gray-800">Time: <span className="text-gray-600">{selectedBooking.startTime} - {selectedBooking.endTime}</span></div>
+                              <div className="text-sm text-gray-800">Total: <span className="text-gray-600">${selectedBooking.totalPrice}</span></div>
+                            </div>
+                            {(user?.role === 'super_admin' || user?.role === 'field_owner') && (
+                              <div className="mb-6">
+                                <h4 className="font-semibold mb-1">Customer</h4>
+                                <div className="text-sm text-gray-800">{bookingUser?.name}</div>
+                                <div className="text-sm text-gray-600">{bookingUser?.email}</div>
+                              </div>
+                            )}
+                            <div className="flex gap-2 mb-6">
+                              <span className={getStatusColor(selectedBooking.status)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
+                                {selectedBooking.status}
+                              </span>
+                              <span className={getPaymentStatusColor(selectedBooking.paymentStatus)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
+                                {selectedBooking.paymentStatus}
+                              </span>
+                            </div>
+                            <div className="flex justify-end">
+                              <button className="border rounded px-4 py-2 bg-gray-100 hover:bg-gray-200" onClick={() => setSelectedBooking(null)}>
                                 Close
                               </button>
                             </div>
