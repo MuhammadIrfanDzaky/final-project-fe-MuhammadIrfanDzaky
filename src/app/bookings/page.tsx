@@ -94,12 +94,23 @@ export default function BookingsPage() {
 
   const handleUpdateBookingStatus = async (bookingId: number, status: Booking['status']) => {
     try {
-  await api.updateBooking(bookingId, { status });
-  toast.success('Booking status updated successfully');
+      await api.updateBooking(bookingId, { status });
+      toast.success('Booking status updated successfully');
       fetchBookings();
     } catch (error) {
       console.error('Error updating booking status:', error);
-  toast.error('Failed to update booking status');
+      toast.error('Failed to update booking status');
+    }
+  };
+
+  const handleUpdatePaymentStatus = async (bookingId: number, paymentStatus: Booking['paymentStatus']) => {
+    try {
+      await api.updateBooking(bookingId, { paymentStatus });
+      toast.success('Payment status updated successfully');
+      fetchBookings();
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      toast.error('Failed to update payment status');
     }
   };
 
@@ -131,23 +142,19 @@ export default function BookingsPage() {
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'refunded':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'refunded': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-  case 'confirmed': return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="green" /></svg>;
-  case 'cancelled': return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="red" /></svg>;
-  case 'pending': return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="yellow" /></svg>;
-  default: return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="gray" /></svg>;
+      case 'confirmed': return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="green" /></svg>;
+      case 'cancelled': return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="red" /></svg>;
+      case 'pending': return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="yellow" /></svg>;
+      default: return <svg className="h-4 w-4" aria-hidden="true"><circle cx="2" cy="2" r="2" fill="gray" /></svg>;
     }
   };
 
@@ -379,7 +386,8 @@ export default function BookingsPage() {
                         </div>
                       )}
                       {canManageBookings && (user?.role === 'super_admin' || user?.role === 'field_owner' || booking.userId === user?.id) && (
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 items-center">
+                          {/* Booking status actions */}
                           {booking.status === 'pending' && (user?.role === 'super_admin' || user?.role === 'field_owner') && (
                             <button
                               className="border rounded px-3 py-1 bg-gray-100 hover:bg-gray-200"
@@ -403,6 +411,22 @@ export default function BookingsPage() {
                             >
                               Cancel
                             </button>
+                          )}
+                          {/* Payment confirmation action */}
+                          {booking.paymentStatus === 'pending' && (user?.role === 'super_admin' || user?.role === 'field_owner') && (
+                            <button
+                              className="border rounded px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700"
+                              onClick={() => handleUpdatePaymentStatus(booking.id, 'paid')}
+                            >
+                              Confirm Payment
+                            </button>
+                          )}
+                          {/* Completed indicator */}
+                          {booking.status === 'completed' && (
+                            <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold ml-2">
+                              <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
+                              Completed
+                            </span>
                           )}
                         </div>
                       )}

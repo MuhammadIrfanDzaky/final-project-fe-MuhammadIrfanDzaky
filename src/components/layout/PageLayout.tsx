@@ -17,7 +17,7 @@ export default function PageLayout(props: PageLayoutProps) {
       <main className="flex-1 flex flex-col overflow-hidden">
         {(title || subtitle) && (
           <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-screen-xl mx-auto">
               {title && (
                 <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
               )}
@@ -28,7 +28,7 @@ export default function PageLayout(props: PageLayoutProps) {
           </div>
         )}
         <div className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto p-6">
+          <div className="max-w-screen-xl mx-auto p-6">
             {children}
           </div>
         </div>

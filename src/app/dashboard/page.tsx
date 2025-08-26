@@ -12,9 +12,13 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [bookingGrowth, setBookingGrowth] = useState<number | null>(null);
+  const [revenueGrowth, setRevenueGrowth] = useState<number | null>(null);
   const [courts, setCourts] = useState<Court[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newUsersThisWeek, setNewUsersThisWeek] = useState<number>(0);
+  const [firstTimeBookersThisMonth, setFirstTimeBookersThisMonth] = useState<number>(0);
 
   useEffect(() => {
     // Redirect regular users to courts page
@@ -22,7 +26,6 @@ export default function DashboardPage() {
       router.push('/courts');
       return;
     }
-
 
     const fetchDashboardData = async () => {
       try {
@@ -33,9 +36,6 @@ export default function DashboardPage() {
         ]);
         const courtsData = courtsDataRaw as Court[];
         const usersData = usersDataRaw as User[];
-
-        // Calculate stats (simulate dashboard stats aggregation)
-        // In a real app, this should be a dedicated endpoint, but we aggregate here for now
         const bookingsRaw = await api.getBookings();
         const bookings = bookingsRaw as Booking[];
         const userBookings = user?.role === 'field_owner'
@@ -61,6 +61,43 @@ export default function DashboardPage() {
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
           .slice(0, 5);
 
+
+        // Calculate booking growth: (thisMonth - lastMonth) / lastMonth * 100
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+        const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+        const bookingsThisMonth = userBookings.filter(b => {
+          const d = new Date(b.createdAt);
+          return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        });
+        const bookingsLastMonth = userBookings.filter(b => {
+          const d = new Date(b.createdAt);
+          return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+        });
+        // Booking growth
+        let bookingGrowthValue: number | null = null;
+        if (bookingsLastMonth.length === 0 && bookingsThisMonth.length > 0) {
+          bookingGrowthValue = 100;
+        } else if (bookingsLastMonth.length === 0 && bookingsThisMonth.length === 0) {
+          bookingGrowthValue = 0;
+        } else {
+          bookingGrowthValue = ((bookingsThisMonth.length - bookingsLastMonth.length) / bookingsLastMonth.length) * 100;
+        }
+        setBookingGrowth(bookingGrowthValue);
+        // Revenue growth
+        const revenueThisMonth = bookingsThisMonth.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+        const revenueLastMonth = bookingsLastMonth.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+        let revenueGrowthValue: number | null = null;
+        if (revenueLastMonth === 0 && revenueThisMonth > 0) {
+          revenueGrowthValue = 100;
+        } else if (revenueLastMonth === 0 && revenueThisMonth === 0) {
+          revenueGrowthValue = 0;
+        } else {
+          revenueGrowthValue = ((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100;
+        }
+        setRevenueGrowth(revenueGrowthValue);
+
         setStats({
           totalBookings,
           totalRevenue,
@@ -80,8 +117,50 @@ export default function DashboardPage() {
 
     if (user) {
       fetchDashboardData();
+      // Fetch new users this week (admin)
+      if (user.role === 'super_admin') {
+        api.getNewUsersThisWeek().then(
+          (res: any) => setNewUsersThisWeek(res.count)
+        ).catch(
+          () => setNewUsersThisWeek(0)
+        );
+      }
     }
   }, [user, router]);
+
+  useEffect(() => {
+    if (user?.role !== 'field_owner' || !stats || courts.length === 0) return;
+    // Get all bookings for this owner's courts (not just recent/upcoming)
+    const ownerCourtIds = courts.filter(c => c.ownerId === user.id).map(c => c.id);
+    // Use all bookings for the logic
+    api.getBookings().then((allBookingsRaw: any) => {
+      const allBookings = allBookingsRaw as Booking[];
+      // Map userId to all their bookings (across all courts)
+      const userToBookings: { [userId: string]: Booking[] } = {};
+      allBookings.forEach(b => {
+        if (!userToBookings[b.userId]) userToBookings[b.userId] = [];
+        userToBookings[b.userId].push(b);
+      });
+      // For each user, check if their first booking is on this owner's court and within the current month
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      let count = 0;
+      Object.entries(userToBookings).forEach(([userId, bookings]) => {
+        const sorted = bookings.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const first = sorted[0];
+        if (
+          first &&
+          ownerCourtIds.includes(first.courtId) &&
+          new Date(first.createdAt).getMonth() === currentMonth &&
+          new Date(first.createdAt).getFullYear() === currentYear
+        ) {
+          count++;
+        }
+      });
+      setFirstTimeBookersThisMonth(count);
+    });
+  }, [user, stats, courts]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -185,7 +264,13 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className="text-2xl font-bold">{stats?.totalBookings ?? 0}</div>
-                <div className="text-xs text-green-600 mt-1">+12% from last month</div>
+                <div className="text-xs text-green-600 mt-1">
+                  {bookingGrowth !== null ?
+                    (bookingGrowth === 0 ? 'No change from last month'
+                      : bookingGrowth > 0 ? `+${bookingGrowth.toFixed(0)}% from last month`
+                      : `${bookingGrowth.toFixed(0)}% from last month`)
+                    : '...'}
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-2">
@@ -195,7 +280,13 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className="text-2xl font-bold">${stats?.totalRevenue ?? 0}</div>
-                <div className="text-xs text-green-600 mt-1">+8% from last month</div>
+                <div className="text-xs text-green-600 mt-1">
+                  {revenueGrowth !== null ?
+                    (revenueGrowth === 0 ? 'No change from last month'
+                      : revenueGrowth > 0 ? `+${revenueGrowth.toFixed(0)}% from last month`
+                      : `${revenueGrowth.toFixed(0)}% from last month`)
+                    : '...'}
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-2">
@@ -205,18 +296,32 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className="text-2xl font-bold">{stats?.activeCourts ?? 0}</div>
-                <div className="text-xs text-gray-500 mt-1">All systems operational</div>
+                <div className="text-xs text-green-600 mt-1">All systems operational</div>
               </div>
-              <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-500 font-medium">Total Users</span>
-                  <span className="text-gray-400">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4" /><path d="M17 11v-1a4 4 0 0 0-4-4h-1" /><path d="M17 21v-2a4 4 0 0 0-4-4h-1" /><circle cx="17" cy="17" r="4" /></svg>
-                  </span>
+              {/* Stat card 4: role-based */}
+              {user?.role === 'super_admin' ? (
+                <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-500 font-medium">Total Users</span>
+                    <span className="text-gray-400">
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4" /><path d="M17 11v-1a4 4 0 0 0-4-4h-1" /><path d="M17 21v-2a4 4 0 0 0-4-4h-1" /><circle cx="17" cy="17" r="4" /></svg>
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold">{stats?.totalUsers ?? 0}</div>
+                  <div className="text-xs text-green-600 mt-1">+{newUsersThisWeek} new this week</div>
                 </div>
-                <div className="text-2xl font-bold">{stats?.totalUsers ?? 0}</div>
-                <div className="text-xs text-green-600 mt-1">+5 new this week</div>
-              </div>
+              ) : user?.role === 'field_owner' ? (
+                <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-500 font-medium">New Bookers This Month</span>
+                    <span className="text-gray-400">
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12l2 2 4-4" /></svg>
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold">{firstTimeBookersThisMonth}</div>
+                  <div className="text-xs text-green-600 mt-1">First bookings on your courts this month</div>
+                </div>
+              ) : null}
             </div>
 
             {/* Bookings Overview */}

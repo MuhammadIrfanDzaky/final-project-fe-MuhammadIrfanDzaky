@@ -1,6 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Booking } from '@/types';
+// Simple modal component
+function Modal({ open, onClose, children }: { open: boolean, onClose: () => void, children: React.ReactNode }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full relative">
+        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+        {children}
+      </div>
+    </div>
+  );
+}
 import PageLayout from '@/components/layout/PageLayout';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +24,25 @@ import Link from 'next/link';
 
 export default function CourtsPage() {
   const { user } = useAuth();
+  const [showBookingsCourtId, setShowBookingsCourtId] = useState<number | null>(null);
+  const [courtBookings, setCourtBookings] = useState<Booking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  // Fetch bookings for a specific court
+  const handleViewBookings = async (courtId: number) => {
+    setShowBookingsCourtId(courtId);
+    setBookingsLoading(true);
+    try {
+      const allBookings = await api.getBookings();
+      const now = new Date();
+      // Only show bookings for this court, upcoming or today
+      const filtered = (allBookings as Booking[]).filter(b => b.courtId === courtId && new Date(b.date) >= new Date(now.toISOString().split('T')[0]));
+      setCourtBookings(filtered);
+    } catch (e) {
+      setCourtBookings([]);
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
   const [courts, setCourts] = useState<Court[]>([]);
   const [filteredCourts, setFilteredCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,36 +302,69 @@ export default function CourtsPage() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2 mt-2">
-                    {court.description}
-                  </p>
-                  <div className="space-y-4 mt-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">Price per hour</span>
-                      <span className="text-lg font-bold text-primary">
-                        ${court.pricePerHour}
-                      </span>
-                    </div>
-                    {court.facilities.length > 0 && (
-                      <div>
-                        <span className="text-sm font-medium text-gray-900">Facilities</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {court.facilities.slice(0, 3).map((facility) => (
-                            <span key={facility} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700">
-                              {facility}
-                            </span>
-                          ))}
-                          {court.facilities.length > 3 && (
-                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700">
-                              +{court.facilities.length - 3} more
-                            </span>
-                          )}
-                        </div>
+                    <p
+                      className="text-sm text-gray-600 truncate mt-2 cursor-pointer"
+                      title={court.description}
+                      onClick={e => {
+                        const target = e.currentTarget;
+                        if (target.style.whiteSpace === 'normal') {
+                          target.style.whiteSpace = 'nowrap';
+                          target.style.overflow = 'hidden';
+                          target.style.textOverflow = 'ellipsis';
+                        } else {
+                          target.style.whiteSpace = 'normal';
+                          target.style.overflow = 'visible';
+                          target.style.textOverflow = 'clip';
+                        }
+                      }}
+                    >
+                      {court.description}
+                    </p>
+                  <div className="space-y-4 mt-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">Price per hour</span>
+                        <span className="text-lg font-bold text-primary">
+                          ${court.pricePerHour}
+                        </span>
                       </div>
-                    )}
-                    <div className="flex gap-2">
+                      {court.facilities.length > 0 && (
+                        <div className="mt-3">
+                          <span className="text-sm font-medium text-gray-900">Facilities</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {court.facilities.slice(0, 3).map((facility) => (
+                              <span key={facility} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700">
+                                {facility}
+                              </span>
+                            ))}
+                            {court.facilities.length > 3 && (
+                              <span
+                                className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700 cursor-pointer"
+                                title="Show all facilities"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  const parent = (e.currentTarget.parentElement as HTMLElement);
+                                  // Remove the "+... more" badge
+                                  e.currentTarget.style.display = 'none';
+                                  // Add all facilities badges after the third one
+                                  court.facilities.slice(3).forEach(facility => {
+                                    const badge = document.createElement('span');
+                                    badge.className = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700";
+                                    badge.textContent = facility;
+                                    parent.appendChild(badge);
+                                  });
+                                }}
+                              >
+                                +{court.facilities.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 mt-auto">
                       {canAccessCourt(user, court) && (
-                        <a href={`/courts/${court.id}`} className="flex-1 inline-block text-center border rounded px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 mr-1">
+                        <a href={`/courts/${court.id}`} className="flex-1 inline-block text-center border rounded px-3 py-2 bg-blue-500 text-white hover:bg-blue-600">
                           View Details
                         </a>
                       )}
@@ -309,6 +374,32 @@ export default function CourtsPage() {
                         </a>
                       )}
                     </div>
+            {/* Modal for court bookings */}
+            <Modal open={!!showBookingsCourtId} onClose={() => setShowBookingsCourtId(null)}>
+              <h2 className="text-xl font-bold mb-2">Bookings for this Court</h2>
+              {bookingsLoading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : courtBookings.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">No upcoming bookings for this court.</div>
+              ) : (
+                <div className="space-y-2">
+                  {courtBookings.map(b => (
+                    <div key={b.id} className="flex justify-between items-center border rounded px-3 py-2">
+                      <span className="font-medium">{b.date} {b.startTime}-{b.endTime}</span>
+                      <span className={
+                        b.status === 'confirmed' ? 'bg-green-100 text-green-800 px-2 py-1 rounded text-xs' :
+                        b.status === 'pending' ? 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs' :
+                        b.status === 'completed' ? 'bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs' :
+                        b.status === 'cancelled' ? 'bg-red-100 text-red-800 px-2 py-1 rounded text-xs' :
+                        'bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs'
+                      }>
+                        {b.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Modal>
                   </div>
                 </div>
               </div>
