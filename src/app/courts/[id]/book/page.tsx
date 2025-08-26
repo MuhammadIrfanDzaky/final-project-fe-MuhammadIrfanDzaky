@@ -24,9 +24,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 
-export default function BookCourtPage({ params }: { params: { id: string } }) {
-  const courtId = Number(params.id);
-  const { user } = useAuth();
+import ReactUse from 'react';
+
+export default function BookCourtPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = ReactUse.use(params);
+  const courtId = Number(id);
+  const { user, loading: authLoading } = useAuth();
   const [court, setCourt] = useState<Court | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -39,11 +42,18 @@ export default function BookCourtPage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to finish loading
     async function fetchCourt() {
       try {
         const data = await api.getCourtById(courtId);
-        if (!data || !canAccessCourt(user, data)) {
-          toast.error('You do not have permission to book this court');
+        if (!data) {
+          toast.error('Court not found');
+          router.push('/courts');
+        } else if (!user) {
+          toast.error('You must be logged in to book a court');
+          router.push('/auth/login');
+        } else if (!(data as Court).isActive) {
+          toast.error('This court is currently unavailable for booking');
           router.push('/courts');
         } else {
           setCourt(data as Court);
@@ -56,7 +66,7 @@ export default function BookCourtPage({ params }: { params: { id: string } }) {
       }
     }
     fetchCourt();
-  }, [courtId, user, router]);
+  }, [courtId, user, authLoading, router]);
 
   const handleInputChange = (field: string, value: string) => {
     setBookingData((prev) => ({ ...prev, [field]: value }));

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Green background -->
+  <rect width="48" height="48" rx="8" fill="#16a34a"/>
+  <!-- Main ball circle - white background -->
+  <circle cx="24" cy="24" r="16.5" fill="white" stroke="none"/>
+  <!-- Futsal panel lines using green color -->
+  <path d="M24 8 C32 16, 32 32, 24 40" stroke="#16a34a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M11 18 C17 22, 17 26, 11 30" stroke="#16a34a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M37 18 C31 22, 31 26, 37 30" stroke="#16a34a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M18 11 C22 17, 26 17, 30 11" stroke="#16a34a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>
