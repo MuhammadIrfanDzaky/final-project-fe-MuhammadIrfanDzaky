@@ -30,7 +30,14 @@ const Navigation = () => {
       name: 'Courts',
       href: '/courts',
       icon: (
-        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 2v20M2 12h20" /></svg>
+        // Futsal court SVG icon
+        <svg width="20" height="20" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="8" width="40" height="32" rx="4" fill="#fff" stroke="#000000ff"/>
+          <line x1="24" y1="8" x2="24" y2="40" stroke="#000000ff"/>
+          <circle cx="24" cy="24" r="6" fill="none" stroke="#000000ff"/>
+          <rect x="4" y="16" width="8" height="16" rx="2" fill="none" stroke="#000000ff"/>
+          <rect x="36" y="16" width="8" height="16" rx="2" fill="none" stroke="#000000ff"/>
+        </svg>
       ),
       permission: null,
       roles: ['super_admin', 'field_owner', 'regular_user'],
@@ -151,7 +158,13 @@ const Navigation = () => {
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center gap-3 mb-3">
               <Avatar className="w-10 h-10">
-                <AvatarImage src={user?.avatar || ''} />
+                {user?.avatar ? (
+                  <AvatarImage src={user.avatar} />
+                ) : (
+                  <span className="w-full h-full flex items-center justify-center text-lg font-bold text-gray-600 uppercase">
+                    {user?.name ? user.name.charAt(0) : '?'}
+                  </span>
+                )}
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">

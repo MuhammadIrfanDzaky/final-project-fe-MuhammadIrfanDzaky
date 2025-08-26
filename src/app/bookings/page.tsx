@@ -282,19 +282,41 @@ export default function BookingsPage() {
                 <div key={booking.id} className="border rounded-lg shadow-sm p-6 bg-white card-hover">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
-                      </div>
+                      <div className="flex-shrink-0"></div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-lg font-semibold text-gray-900">
                             {court?.name || 'Unknown Court'}
                           </h3>
-                          <span className={getStatusColor(booking.status)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
-                            {booking.status}
-                          </span>
-                          <span className={getPaymentStatusColor(booking.paymentStatus)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
-                            {booking.paymentStatus}
-                          </span>
+                          {/* Booking Status and Payment Status Badges only for field_owner and super_admin */}
+                          {(user?.role === 'field_owner' || user?.role === 'super_admin') && (
+                            <>
+                              {/* Booking Status Badge */}
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold text-xs shadow-sm border ${getStatusColor(booking.status)}`}
+                                style={{ minWidth: 90, justifyContent: 'center', borderWidth: 1 }}
+                                title={`Booking status: ${booking.status}`}
+                              >
+                                {getStatusIcon(booking.status)}
+                                <span className="capitalize">{booking.status.replace('_', ' ')}</span>
+                              </span>
+                              {/* Payment Status Badge */}
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold text-xs shadow-sm border ${getPaymentStatusColor(booking.paymentStatus)}`}
+                                style={{ minWidth: 90, justifyContent: 'center', borderWidth: 1 }}
+                                title={`Payment status: ${booking.paymentStatus}`}
+                              >
+                                {booking.paymentStatus === 'paid' && (
+                                  <svg className="h-3 w-3 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" clipRule="evenodd" /></svg>
+                                )}
+                                {booking.paymentStatus === 'pending' && (
+                                  <svg className="h-3 w-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" /></svg>
+                                )}
+                                {booking.paymentStatus === 'refunded' && (
+                                  <svg className="h-3 w-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M4 10a6 6 0 1112 0 6 6 0 01-12 0zm7-3v4l3 1" /></svg>
+                                )}
+                                <span className="capitalize">{booking.paymentStatus.replace('_', ' ')}</span>
+                              </span>
+                            </>
+                          )}
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                           <div className="flex items-center gap-1">
@@ -340,53 +362,17 @@ export default function BookingsPage() {
                       <button className="border rounded px-3 py-1 bg-gray-100 hover:bg-gray-200" onClick={() => setSelectedBooking(booking)}>
                         Details
                       </button>
-                      {selectedBooking && selectedBooking.id === booking.id && (
-                        <div
-                          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-                          onClick={() => setSelectedBooking(null)}
-                        >
-                          <div
-                            className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            <h2 className="text-2xl font-bold mb-2">Booking Details</h2>
-                            <p className="text-gray-600 mb-6">Complete information for this booking</p>
-                            <div className="mb-6">
-                              <h4 className="font-semibold mb-1">Court Information</h4>
-                              <div className="text-sm text-gray-800">{court?.name}</div>
-                              <div className="text-sm text-gray-600">{court?.location}</div>
-                            </div>
-                            <div className="mb-6">
-                              <h4 className="font-semibold mb-1">Booking Details</h4>
-                              <div className="text-sm text-gray-800">Date: <span className="text-gray-600">{selectedBooking.date}</span></div>
-                              <div className="text-sm text-gray-800">Time: <span className="text-gray-600">{selectedBooking.startTime} - {selectedBooking.endTime}</span></div>
-                              <div className="text-sm text-gray-800">Total: <span className="text-gray-600">${selectedBooking.totalPrice}</span></div>
-                            </div>
-                            {(user?.role === 'super_admin' || user?.role === 'field_owner') && (
-                              <div className="mb-6">
-                                <h4 className="font-semibold mb-1">Customer</h4>
-                                <div className="text-sm text-gray-800">{bookingUser?.name}</div>
-                                <div className="text-sm text-gray-600">{bookingUser?.email}</div>
-                              </div>
-                            )}
-                            <div className="flex gap-2 mb-6">
-                              <span className={getStatusColor(selectedBooking.status)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
-                                {selectedBooking.status}
-                              </span>
-                              <span className={getPaymentStatusColor(selectedBooking.paymentStatus)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
-                                {selectedBooking.paymentStatus}
-                              </span>
-                            </div>
-                            <div className="flex justify-end">
-                              <button className="border rounded px-4 py-2 bg-gray-100 hover:bg-gray-200" onClick={() => setSelectedBooking(null)}>
-                                Close
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                       {canManageBookings && (user?.role === 'super_admin' || user?.role === 'field_owner' || booking.userId === user?.id) && (
                         <div className="flex gap-1 items-center">
+                          {/* Payment confirmation action only for super_admin and field_owner */}
+                          {booking.paymentStatus === 'pending' && (user?.role === 'super_admin' || user?.role === 'field_owner') && (
+                            <button
+                              className="border rounded px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700"
+                              onClick={() => handleUpdatePaymentStatus(booking.id, 'paid')}
+                            >
+                              Confirm Payment
+                            </button>
+                          )}
                           {/* Booking status actions */}
                           {booking.status === 'pending' && (user?.role === 'super_admin' || user?.role === 'field_owner') && (
                             <button
@@ -396,7 +382,7 @@ export default function BookingsPage() {
                               Confirm
                             </button>
                           )}
-                          {booking.status === 'confirmed' && (
+                          {booking.status === 'confirmed' && (user?.role === 'super_admin' || user?.role === 'field_owner') && (
                             <button
                               className="border rounded px-3 py-1 bg-gray-100 hover:bg-gray-200"
                               onClick={() => handleUpdateBookingStatus(booking.id, 'completed')}
@@ -404,6 +390,7 @@ export default function BookingsPage() {
                               Complete
                             </button>
                           )}
+                          {/* All users (including regular_user) can cancel if not already cancelled */}
                           {booking.status !== 'cancelled' && (
                             <button
                               className="border rounded px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700"
@@ -412,16 +399,7 @@ export default function BookingsPage() {
                               Cancel
                             </button>
                           )}
-                          {/* Payment confirmation action */}
-                          {booking.paymentStatus === 'pending' && (user?.role === 'super_admin' || user?.role === 'field_owner') && (
-                            <button
-                              className="border rounded px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700"
-                              onClick={() => handleUpdatePaymentStatus(booking.id, 'paid')}
-                            >
-                              Confirm Payment
-                            </button>
-                          )}
-                          {/* Completed indicator */}
+                          {/* Completed indicator for all roles */}
                           {booking.status === 'completed' && (
                             <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold ml-2">
                               <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
@@ -435,6 +413,63 @@ export default function BookingsPage() {
                 </div>
               );
             })}
+            {/* Booking Details Modal */}
+            {selectedBooking && (() => {
+              const court = courts.find(c => c.id === selectedBooking.courtId);
+              const bookingUser = users.find(u => u.id === selectedBooking.userId) || user;
+              return (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center"
+                  style={{ background: 'rgba(0,0,0,0.5)' }}
+                  onClick={() => setSelectedBooking(null)}
+                >
+                  <div
+                    className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg relative animate-fadeIn"
+                    style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <button
+                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold focus:outline-none"
+                      onClick={() => setSelectedBooking(null)}
+                      aria-label="Close"
+                    >
+                      &times;
+                    </button>
+                    <h2 className="text-2xl font-bold mb-2 text-center">Booking Details</h2>
+                    <p className="text-gray-600 mb-6 text-center">Complete information for this booking</p>
+                    <div className="mb-6">
+                      <h4 className="font-semibold mb-1">Court Information</h4>
+                      <div className="text-sm text-gray-800">{court?.name}</div>
+                      <div className="text-sm text-gray-600">{court?.location}</div>
+                    </div>
+                    <div className="mb-6">
+                      <h4 className="font-semibold mb-1">Booking Details</h4>
+                      <div className="text-sm text-gray-800">Date: <span className="text-gray-600">{selectedBooking.date}</span></div>
+                      <div className="text-sm text-gray-800">Time: <span className="text-gray-600">{selectedBooking.startTime} - {selectedBooking.endTime}</span></div>
+                      <div className="text-sm text-gray-800">Total: <span className="text-gray-600">${selectedBooking.totalPrice}</span></div>
+                    </div>
+                    {(user?.role === 'super_admin' || user?.role === 'field_owner') && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold mb-1">Customer</h4>
+                        <div className="text-sm text-gray-800">{bookingUser?.name}</div>
+                        <div className="text-sm text-gray-600">{bookingUser?.email}</div>
+                      </div>
+                    )}
+                    {/* Booking Status and Payment Status Badges only for field_owner and super_admin */}
+                    {(user?.role === 'field_owner' || user?.role === 'super_admin') && (
+                      <div className="flex gap-2 mb-6">
+                        <span className={getStatusColor(selectedBooking.status)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
+                          {selectedBooking.status}
+                        </span>
+                        <span className={getPaymentStatusColor(selectedBooking.paymentStatus)} style={{padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>
+                          {selectedBooking.paymentStatus}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>

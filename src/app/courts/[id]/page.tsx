@@ -1,9 +1,16 @@
-
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Booking } from '@/types';
-// Simple modal component
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/utils/api';
+import { Court } from '@/types';
+import { toast } from 'react-toastify';
+import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
+import PageLayout from '@/components/layout/PageLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 function Modal({ open, onClose, children }: { open: boolean, onClose: () => void, children: React.ReactNode }) {
   if (!open) return null;
   return (
@@ -15,17 +22,9 @@ function Modal({ open, onClose, children }: { open: boolean, onClose: () => void
     </div>
   );
 }
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/utils/api';
-import { Court } from '@/types';
-import { toast } from 'react-toastify';
-import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
-import PageLayout from '@/components/layout/PageLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function CourtDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+  const { id } = React.use(params);
   const courtId = Number(id);
   const { user } = useAuth();
   const router = useRouter();
@@ -34,7 +33,8 @@ export default function CourtDetailsPage({ params }: { params: Promise<{ id: str
   const [showBookings, setShowBookings] = useState(false);
   const [courtBookings, setCourtBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
-  // Fetch bookings for this court
+  const [showAllFacilities, setShowAllFacilities] = useState(false);
+
   const handleViewBookings = async () => {
     setShowBookings(true);
     setBookingsLoading(true);
@@ -57,14 +57,14 @@ export default function CourtDetailsPage({ params }: { params: Promise<{ id: str
     let isMounted = true;
     async function fetchCourt() {
       try {
-    const data = await api.getCourtById(courtId);
-    if (!isMounted) return;
-    if (!data || !canAccessCourt(user, data)) {
-      toast.error('You do not have permission to view this court');
-      router.push('/courts');
-      return;
-    }
-    setCourt(data as Court);
+        const data = await api.getCourtById(courtId);
+        if (!isMounted) return;
+        if (!data || !canAccessCourt(user, data)) {
+          toast.error('You do not have permission to view this court');
+          router.push('/courts');
+          return;
+        }
+        setCourt(data as Court);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -76,12 +76,12 @@ export default function CourtDetailsPage({ params }: { params: Promise<{ id: str
   const handleDeleteCourt = async () => {
     if (!court) return;
     try {
-  await api.deleteCourt(court.id);
-        toast.success('Court deleted successfully');
+      await api.deleteCourt(court.id);
+      toast.success('Court deleted successfully');
       router.push('/courts');
     } catch (error) {
       console.error('Error deleting court:', error);
-    toast.error('Failed to delete court');
+      toast.error('Failed to delete court');
     }
   };
 
@@ -173,30 +173,65 @@ export default function CourtDetailsPage({ params }: { params: Promise<{ id: str
             {/* Info right */}
             <div className="space-y-4">
               <div className="bg-white rounded-lg shadow p-4">
-                <div className="text-lg font-semibold mb-2 text-blue-600">COURT INFORMATION</div>
-                <div className="flex flex-col gap-2 text-lg font-semibold">
-                  <div className="flex items-center gap-2">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21c-4.97-6.16-8-9.5-8-13A8 8 0 0 1 20 8c0 3.5-3.03 6.84-8 13z" /><circle cx="12" cy="8" r="3" /></svg>
-                    <span>Location:</span>
-                    <span className="text-gray-600 font-normal">{court.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-                    <span>Pricing:</span>
-                    <span className="text-gray-600 font-normal">${court.pricePerHour} / hour</span>
-                  </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1" title={court.name}>{court.name}</div>
+                  <div className="text-base text-gray-600 font-normal truncate" style={{maxWidth: '100%'}} title={court.description}>{court.description}</div>
                 </div>
-                <div className="flex items-center gap-2 text-lg font-semibold mb-2">
-                  <span>Facilities :</span>
-                  {court.facilities.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {court.facilities.map((f) => (
-                        <span key={f} className="inline-block px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-800">{f}</span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-gray-500 text-base font-normal">No facilities listed</span>
-                  )}
+              </div>
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="grid grid-cols-[40px_120px_16px_1fr] gap-y-2 items-center text-lg font-semibold">
+                  {/* Location row */}
+                  <div className="flex items-center justify-center">
+                    <svg className="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21c-4.97-6.16-8-9.5-8-13A8 8 0 0 1 20 8c0 3.5-3.03 6.84-8 13z" /><circle cx="12" cy="8" r="3" /></svg>
+                  </div>
+                  <div>Location</div>
+                  <div className="justify-self-center">:</div>
+                  <div className="text-gray-600 font-normal">{court.location}</div>
+                  {/* Pricing row */}
+                  <div className="flex items-center justify-center">
+                    <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                  </div>
+                  <div>Pricing</div>
+                  <div className="justify-self-center">:</div>
+                  <div className="text-gray-600 font-normal">${court.pricePerHour} / hour</div>
+                  {/* Facilities row */}
+                  <div className="flex items-center justify-center">
+                    {/* Facility SVG icon */}
+                    <svg className="h-5 w-5 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>
+                  </div>
+                  <div>Facilities</div>
+                  <div className="justify-self-center">:</div>
+                  <div>
+                    {court.facilities.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {(showAllFacilities ? court.facilities : court.facilities.slice(0, 3)).map((f) => (
+                          <span key={f} className="inline-block px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-800">
+                            {f}
+                          </span>
+                        ))}
+                        {court.facilities.length > 3 && !showAllFacilities && (
+                          <button
+                            type="button"
+                            className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                            onClick={() => setShowAllFacilities(true)}
+                          >
+                            + {court.facilities.length - 3} more
+                          </button>
+                        )}
+                        {court.facilities.length > 3 && showAllFacilities && (
+                          <button
+                            type="button"
+                            className="px-2 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                            onClick={() => setShowAllFacilities(false)}
+                          >
+                            Show less
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500 text-base font-normal">No facilities listed</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">

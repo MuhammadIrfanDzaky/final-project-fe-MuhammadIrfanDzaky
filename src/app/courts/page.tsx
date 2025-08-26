@@ -291,77 +291,21 @@ export default function CourtsPage() {
                   )}
                 </div>
                 <div className="flex-1 flex flex-col p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="text-lg font-semibold text-gray-900">{court.name}</div>
-                      <div className="flex items-center gap-1 mt-1 text-sm text-gray-600">
-                        <span className="h-3 w-3 flex items-center justify-center" title="Location">
-                          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21c-4.97-6.16-8-9.5-8-13A8 8 0 0 1 20 8c0 3.5-3.03 6.84-8 13z" /><circle cx="12" cy="8" r="3" /></svg>
-                        </span>
-                        {court.location}
-                      </div>
+                  <div className="flex flex-col gap-1 mb-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-semibold text-gray-900">{court.name}</span>
+                      <span className="text-sm font-medium text-gray-900 flex items-center gap-1">
+                        <span className="text-lg font-bold text-primary">${court.pricePerHour}</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <span className="h-3 w-3 flex items-center justify-center" title="Location">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21c-4.97-6.16-8-9.5-8-13A8 8 0 0 1 20 8c0 3.5-3.03 6.84-8 13z" /><circle cx="12" cy="8" r="3" /></svg>
+                      </span>
+                      {court.location}
                     </div>
                   </div>
-                    <p
-                      className="text-sm text-gray-600 truncate mt-2 cursor-pointer"
-                      title={court.description}
-                      onClick={e => {
-                        const target = e.currentTarget;
-                        if (target.style.whiteSpace === 'normal') {
-                          target.style.whiteSpace = 'nowrap';
-                          target.style.overflow = 'hidden';
-                          target.style.textOverflow = 'ellipsis';
-                        } else {
-                          target.style.whiteSpace = 'normal';
-                          target.style.overflow = 'visible';
-                          target.style.textOverflow = 'clip';
-                        }
-                      }}
-                    >
-                      {court.description}
-                    </p>
                   <div className="space-y-4 mt-4 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">Price per hour</span>
-                        <span className="text-lg font-bold text-primary">
-                          ${court.pricePerHour}
-                        </span>
-                      </div>
-                      {court.facilities.length > 0 && (
-                        <div className="mt-3">
-                          <span className="text-sm font-medium text-gray-900">Facilities</span>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {court.facilities.slice(0, 3).map((facility) => (
-                              <span key={facility} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700">
-                                {facility}
-                              </span>
-                            ))}
-                            {court.facilities.length > 3 && (
-                              <span
-                                className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700 cursor-pointer"
-                                title="Show all facilities"
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  const parent = (e.currentTarget.parentElement as HTMLElement);
-                                  // Remove the "+... more" badge
-                                  e.currentTarget.style.display = 'none';
-                                  // Add all facilities badges after the third one
-                                  court.facilities.slice(3).forEach(facility => {
-                                    const badge = document.createElement('span');
-                                    badge.className = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700";
-                                    badge.textContent = facility;
-                                    parent.appendChild(badge);
-                                  });
-                                }}
-                              >
-                                +{court.facilities.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
                     <div className="flex gap-2 mt-auto">
                       {canAccessCourt(user, court) && (
                         <a href={`/courts/${court.id}`} className="flex-1 inline-block text-center border rounded px-3 py-2 bg-blue-500 text-white hover:bg-blue-600">
@@ -374,32 +318,6 @@ export default function CourtsPage() {
                         </a>
                       )}
                     </div>
-            {/* Modal for court bookings */}
-            <Modal open={!!showBookingsCourtId} onClose={() => setShowBookingsCourtId(null)}>
-              <h2 className="text-xl font-bold mb-2">Bookings for this Court</h2>
-              {bookingsLoading ? (
-                <div className="text-center py-8">Loading...</div>
-              ) : courtBookings.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No upcoming bookings for this court.</div>
-              ) : (
-                <div className="space-y-2">
-                  {courtBookings.map(b => (
-                    <div key={b.id} className="flex justify-between items-center border rounded px-3 py-2">
-                      <span className="font-medium">{b.date} {b.startTime}-{b.endTime}</span>
-                      <span className={
-                        b.status === 'confirmed' ? 'bg-green-100 text-green-800 px-2 py-1 rounded text-xs' :
-                        b.status === 'pending' ? 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs' :
-                        b.status === 'completed' ? 'bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs' :
-                        b.status === 'cancelled' ? 'bg-red-100 text-red-800 px-2 py-1 rounded text-xs' :
-                        'bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs'
-                      }>
-                        {b.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Modal>
                   </div>
                 </div>
               </div>
