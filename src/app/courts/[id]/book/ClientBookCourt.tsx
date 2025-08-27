@@ -44,14 +44,18 @@ export default function ClientBookCourt({
     const router = useRouter();
 
     useEffect(() => {
+        if (user === null) return;
         async function fetchCourt() {
         try {
             const data = await api.getCourtById(courtId);
+            console.log('Booking Debug: user =', user);
+            console.log('Booking Debug: user.role =', user?.role);
+            console.log('Booking Debug: canAccessCourt =', canAccessCourt(user, data));
             if (!data || !canAccessCourt(user, data)) {
-            toast.error('You do not have permission to book this court');
-            router.push('/courts');
+                toast.error('You do not have permission to book this court');
+                router.push('/courts');
             } else {
-            setCourt(data as Court);
+                setCourt(data as Court);
             }
         } catch (error) {
             toast.error('Failed to load court details');
