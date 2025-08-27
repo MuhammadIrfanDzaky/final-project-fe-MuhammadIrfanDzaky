@@ -30,11 +30,11 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-  const data = await api.getUsers();
-  setUsers(data as UserType[]);
+      const data = await api.getUsers();
+      setUsers(data as UserType[]);
     } catch (error) {
       console.error('Error fetching users:', error);
-  window.alert('Failed to load users');
+      window.alert('Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export default function UsersPage() {
 
   const handleUpdateUser = async (userId: number, userData: Partial<UserType>) => {
     try {
-      await api.updateUser(userId, userData);
+      await api.updateUser(Number(userId), userData);
       toast.error('User updated successfully');
       fetchUsers();
       setEditDialogOpen(false);
@@ -76,9 +76,9 @@ export default function UsersPage() {
     }
   };
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeleteUser = async (userId: number | string) => {
     try {
-      await api.deleteUser(userId);
+      await api.deleteUser(Number(userId));
       toast.success('User deleted successfully');
       fetchUsers();
     } catch (error) {

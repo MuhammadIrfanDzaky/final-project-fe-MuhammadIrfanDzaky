@@ -1,30 +1,37 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "@/utils/api";
-import { Court } from "@/types";
-import PageLayout from "@/components/layout/PageLayout";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/utils/api';
+import { Court } from '@/types';
+import { canAccessCourt } from '@/utils/roleGuard';
+import PageLayout from '@/components/layout/PageLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card";
-import Button from "@/components/ui/button";
-import Badge from "@/components/ui/badge";
-import { useAuth } from "@/contexts/AuthContext";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "react-toastify";
-import Link from "next/link";
+} from '@/components/ui/card';
+import Button from '@/components/ui/button';
+import Badge from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'react-toastify';
+import Link from 'next/link';
 
-export default function BookCourt({ courtId }: { courtId: number }) {
-    const { user, loading: authLoading } = useAuth();
+interface ClientBookCourtProps {
+    courtId: number;
+}
+
+export default function ClientBookCourt({
+    courtId,
+    }: ClientBookCourtProps) {
+    const { user } = useAuth();
     const [court, setCourt] = useState<Court | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -37,18 +44,11 @@ export default function BookCourt({ courtId }: { courtId: number }) {
     const router = useRouter();
 
     useEffect(() => {
-        if (authLoading) return; // Wait for auth to finish loading
         async function fetchCourt() {
         try {
             const data = await api.getCourtById(courtId);
-            if (!data) {
-            toast.error('Court not found');
-            router.push('/courts');
-            } else if (!user) {
-            toast.error('You must be logged in to book a court');
-            router.push('/auth/login');
-            } else if (!(data as Court).isActive) {
-            toast.error('This court is currently unavailable for booking');
+            if (!data || !canAccessCourt(user, data)) {
+            toast.error('You do not have permission to book this court');
             router.push('/courts');
             } else {
             setCourt(data as Court);
@@ -61,7 +61,7 @@ export default function BookCourt({ courtId }: { courtId: number }) {
         }
         }
         fetchCourt();
-    }, [courtId, user, authLoading, router]);
+    }, [courtId, user, router]);
 
     const handleInputChange = (field: string, value: string) => {
         setBookingData((prev) => ({ ...prev, [field]: value }));

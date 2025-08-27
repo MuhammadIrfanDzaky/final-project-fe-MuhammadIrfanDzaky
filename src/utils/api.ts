@@ -19,7 +19,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
-  // Auth (example, adjust as needed)
+  // Auth
   login: (data: { email: string; password: string }) => request('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   register: (data: { email: string; password: string; name: string; role: string; phone: string }) => request('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -35,7 +35,7 @@ export const api = {
   getUserById: (id: number) => request(`/api/users/${id}`),
   createUser: (data: any) => request('/api/users', { method: 'POST', body: JSON.stringify(data) }),
   updateUser: (id: number, data: any) => request(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteUser: (id: number) => request(`/api/users/${id}`, { method: 'DELETE' }),
+  deleteUser: (id: number | string) => request(`/api/users/${Number(id)}`, { method: 'DELETE' }),
 
   // Bookings
   getBookings: () => request('/api/bookings'),

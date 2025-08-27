@@ -9,7 +9,6 @@ export interface User {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-
 }
 
 export interface Court {
@@ -60,7 +59,6 @@ export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: { email: string; password: string; name: string; role: string; phone: string; }) => Promise<boolean>;
-  // register: (userData: Omit<User, 'id' | 'createdAt' | 'isActive'>) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }

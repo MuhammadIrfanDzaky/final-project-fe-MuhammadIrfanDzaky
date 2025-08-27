@@ -1,6 +1,9 @@
-import EditCourt from './EditCourt';
+import ClientEditCourt from './ClientEditCourt';
+import { notFound } from 'next/navigation';
+import { use } from 'react';
 
-export default async function EditCourtPage({ params }: { params: Promise<{ id: string }> }) {
-    const courtId = Number((await params).id);
-  return <EditCourt courtId={courtId} />;
+export default function EditCourtPage({ params }: { params: Promise<{ id: number }> }) {
+  const courtId = use(params).id;
+  if (!courtId) return notFound();
+  return <ClientEditCourt courtId={courtId} />;
 }

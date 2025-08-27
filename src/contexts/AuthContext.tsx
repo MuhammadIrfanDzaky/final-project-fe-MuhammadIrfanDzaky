@@ -24,20 +24,10 @@ export function AuthProvider(props: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session and refresh user from backend
+    // Check for existing session
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      // Fetch latest user data from backend
-      api.getUserById(parsedUser.id)
-        .then((freshUser) => {
-          setUser(freshUser as User);
-          localStorage.setItem('user', JSON.stringify(freshUser));
-        })
-        .catch(() => {/* ignore error, keep local user */})
-        .finally(() => setLoading(false));
-      return;
+      setUser(JSON.parse(savedUser));
     }
     setLoading(false);
   }, []);
@@ -47,10 +37,8 @@ export function AuthProvider(props: AuthProviderProps) {
     try {
       const result = await api.login({ email, password }) as any;
       if (result && result.token && result.user) {
-        // Fetch latest user data from backend after login
-  const freshUser = await api.getUserById(result.user.id);
-  setUser(freshUser as User);
-  localStorage.setItem('user', JSON.stringify(freshUser));
+        setUser(result.user);
+        localStorage.setItem('user', JSON.stringify(result.user));
         sessionStorage.setItem('token', result.token);
         return true;
       }

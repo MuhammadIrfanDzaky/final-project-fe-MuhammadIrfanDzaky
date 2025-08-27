@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Booking } from '@/types';
-// Simple modal component
+import PageLayout from '@/components/layout/PageLayout';
+import { toast } from 'react-toastify';
+import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/utils/api';
+import { Court } from '@/types';
+import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
+import Link from 'next/link';
+
 function Modal({ open, onClose, children }: { open: boolean, onClose: () => void, children: React.ReactNode }) {
   if (!open) return null;
   return (
@@ -14,13 +21,6 @@ function Modal({ open, onClose, children }: { open: boolean, onClose: () => void
     </div>
   );
 }
-import PageLayout from '@/components/layout/PageLayout';
-import { toast } from 'react-toastify';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/utils/api';
-import { Court } from '@/types';
-import { canAccessCourt, canManageCourt } from '@/utils/roleGuard';
-import Link from 'next/link';
 
 export default function CourtsPage() {
   const { user } = useAuth();

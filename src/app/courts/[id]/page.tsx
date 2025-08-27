@@ -1,6 +1,7 @@
-import CourtDetails from './CourtDetails';
+import { use } from 'react';
+import ClientCourtDetails from './ClientCourtDetails';
 
-export default async function CourtDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const courtId = Number((await params).id);
-  return <CourtDetails courtId={courtId} />;
+export default function CourtDetailsPage({ params }: { params: Promise<{ id: number }> }) {
+  const courtId = use(params).id;
+  return <ClientCourtDetails courtId={courtId} />;
 }

@@ -1,6 +1,7 @@
-import BookCourt from "./BookCourt";
+import { use } from 'react';
+import ClientBookCourt from './ClientBookCourt';
 
-export default async function BookCourtPage({ params }: { params: Promise<{ id: string }> }) {
-  const courtId = Number((await params).id);
-  return <BookCourt courtId={courtId} />;
+export default function BookCourtPage({ params }: { params: Promise<{ id: number }> }) {
+  const courtId = use(params).id;
+  return <ClientBookCourt courtId={courtId} />;
 }
