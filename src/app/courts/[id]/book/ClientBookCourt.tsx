@@ -48,9 +48,6 @@ export default function ClientBookCourt({
         async function fetchCourt() {
         try {
             const data = await api.getCourtById(courtId);
-            console.log('Booking Debug: user =', user);
-            console.log('Booking Debug: user.role =', user?.role);
-            console.log('Booking Debug: canAccessCourt =', canAccessCourt(user, data));
             if (!data || !canAccessCourt(user, data)) {
                 toast.error('You do not have permission to book this court');
                 router.push('/courts');
@@ -89,27 +86,38 @@ export default function ClientBookCourt({
         e.preventDefault();
         if (!court || !user) return;
         if (
-        !bookingData.date ||
-        !bookingData.startTime ||
-        !bookingData.endTime
+            !bookingData.date ||
+            !bookingData.startTime ||
+            !bookingData.endTime
         ) {
-        toast.error('Please fill in all required fields');
-        return;
+            toast.error('Please fill in all required fields');
+            return;
         }
-        const duration = calculateDuration();
-        if (duration < 1) {
-        toast.error('Minimum booking duration is 1 hour');
-        return;
+            const duration = calculateDuration();
+            if (duration < 1) {
+                toast.error('Minimum booking duration is 1 hour');
+                return;
         }
         setSubmitting(true);
         try {
-        // Simulate API create
-        toast.success('Court booked successfully!');
-        router.push('/bookings');
+            const bookingPayload: any = {
+                courtId: court.id,
+                userId: user.id,
+                date: bookingData.date,
+                startTime: bookingData.startTime,
+                endTime: bookingData.endTime,
+                totalPrice: calculateTotalCost(),
+            };
+            if (bookingData.notes) {
+                bookingPayload.notes = bookingData.notes;
+            }
+            await api.createBooking(bookingPayload);
+            toast.success('Court booked successfully!');
+            router.push('/bookings');
         } catch (error) {
-        toast.error('Failed to book court. Please try again.');
+            toast.error('Failed to book court. Please try again.');
         } finally {
-        setSubmitting(false);
+            setSubmitting(false);
         }
     };
 

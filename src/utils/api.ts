@@ -40,7 +40,7 @@ export const api = {
   // Bookings
   getBookings: () => request('/api/bookings'),
   getBookingById: (id: number) => request(`/api/bookings/${id}`),
-  createBooking: (data: { courtId: number; userId: number; date: string; time: string }) => request('/api/bookings', { method: 'POST', body: JSON.stringify(data) }),
+  createBooking: (data: { courtId: number; userId: number; date: string; startTime: string; endTime: string; totalPrice: number; notes?: string }) => request('/api/bookings', { method: 'POST', body: JSON.stringify(data) }),
   updateBooking: (id: number, data: any) => request(`/api/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteBooking: (id: number) => request(`/api/bookings/${id}`, { method: 'DELETE' }),
 
