@@ -170,33 +170,6 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* Demo Accounts */}
-            <div className="mt-6 space-y-4">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Demo Accounts</span>
-                </div>
-              </div>
-
-              <div className="grid gap-2 text-xs text-gray-600">
-                <div className="p-2 bg-gray-50 rounded">
-                  <strong>Super Admin:</strong> admin@futsal.com / admin123
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <strong>Field Owner 1:</strong> owner@futsal.com / owner1
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <strong>Field Owner 2:</strong> owner2@futsal.com / owner2
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <strong>Regular User:</strong> user@futsal.com / user123
-                </div>
-              </div>
-            </div>
-
             {/* Sign Up Link */}
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600">
