@@ -12,7 +12,7 @@
 Dribble makes booking futsal courts quick and simple for players, teams, and organizers — from finding a court to scheduling a game in seconds. Designed to help field owners maximize utilization and give players a seamless booking experience.
 
 > **Status:** Production  
-> **Live Demo:** [Coming soon]  
+> **Live Demo:** [https://final-project-fe-muhammad-irfan-dza.vercel.app](https://final-project-fe-muhammad-irfan-dza.vercel.app)  
 > **Tech Stack:** React (19.1.1), Next.js (15.4.6), TypeScript, Tailwind CSS  
 
 ---
@@ -126,8 +126,51 @@ final-project-fe-MuhammadIrfanDzaky/
 
 ---
 
-## 🖼️ Diagrams
-> _Add UI or architecture diagrams here if available._
+## 🖼️ Screenshots
+
+
+### Login Page
+Used by all roles to log in.
+![Login Page](public/images/login_page.png)
+
+### Register Page
+Guests can register as regular users or field owners.
+![Register Page](public/images/register_page.png)
+
+### Dashboard Page
+Only super_admins (see all courts) and field_owners (see their own courts) can access this page.
+![Dashboard Page](public/images/Dashboard_page.png)
+
+### Courts Page
+Available to all logged-in users. Regular users can view and book courts; field owners and super admins can manage courts.
+![Courts Page](public/images/courts_page.png)
+
+### Court's Details Page
+Visible only to super_admin and field_owner.
+![Court's Details Page](public/images/courtdetail_page.png)
+
+Visible only to reguler_user.
+![Court's Details Page](public/images/courtdetail-user_page.png)
+
+### Bookings Page
+Available to all logged-in roles. Users see their booking history; field owners and super admins can view/manage all bookings.
+![Bookings Page](public/images/bookings_page.png)
+
+### Book Court Page
+This page is available exclusively to regular users.
+![Court's Details Page](public/images/bookcourt_page.png)
+
+### Edit Court Page
+Visible only to super_admin and field_owner.
+![Court's Details Page](public/images/courtdetail_page.png)
+
+### Users Page
+For super_admin only. Manage user list.
+![Users Page](public/images/users_page.png)
+
+### Profile Page
+Available to all logged-in users for viewing and editing their own profile.
+![Profile Page](public/images/profile_page.png)
 
 ---
 
@@ -143,9 +186,6 @@ final-project-fe-MuhammadIrfanDzaky/
 ## 📫 Contact & Support
 - Project by Muhammad Irfan Dzaky
 - For issues, use the GitHub Issues tab
-- For questions, contact: [your-email@example.com]
+- For questions, contact: [irfndzky@example.com]
 
 ---
-
-## 📝 License
-This project is licensed under the MIT License.
